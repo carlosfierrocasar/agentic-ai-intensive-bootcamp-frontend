@@ -1220,7 +1220,7 @@ function ScheduleTab() {
                       </div>
                     ))}
 
-                    <div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%" }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%", gridColumn: "1 / -1" }} onClick={(e) => e.stopPropagation()}>
                       <div className="section-heading">Week {w.week} Assessment</div>
 
                       <div
