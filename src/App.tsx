@@ -1221,15 +1221,25 @@ function ScheduleTab() {
                     ))}
 
                     <div style={{ marginTop: "1rem" }} onClick={(e) => e.stopPropagation()}>
-                      <div className="section-heading">Assessment</div>
-                      <div className="muted">
-                        Passing score: <b>{w.assessment.passingScore}%</b>
+                      <div className="section-heading">Week {w.week} Assessment</div>
+
+                      <div
+                        className="muted"
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "0.9rem",
+                          alignItems: "baseline",
+                          marginTop: "0.25rem",
+                        }}
+                      >
+                        <div>
+                          <b>Passing Score:</b> {w.assessment.passingScore}%
+                        </div>
+                        <div>
+                          <b>Topics Covered:</b> {w.assessment.topics.join(", ")}
+                        </div>
                       </div>
-                      <ul className="simple-list" style={{ marginTop: "0.35rem" }}>
-                        {w.assessment.topics.map((t) => (
-                          <li key={t}>{t}</li>
-                        ))}
-                      </ul>
                     </div>
                   </div>
                 )}
