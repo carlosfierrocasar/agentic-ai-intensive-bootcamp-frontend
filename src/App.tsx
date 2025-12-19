@@ -542,15 +542,29 @@ function ProgressTab() {
     const learner = learners.find((l) => l.id === learnerId);
     if (!learner) return;
 
-    const newProgress = learner.progress.map((p) =>
+    const safeProgress = Array.isArray(learner.progress) ? learner.progress : [];
+    const weekTotals = [5, 5, 5, 5, 5, 5, 4];
+    const normalizedProgress =
+      safeProgress.length > 0
+        ? safeProgress
+        : weekTotals.map((t, i) => ({
+          week: i + 1,
+          modules_completed: 0,
+          total_modules: t,
+          assessment_pct: 0,
+        }));
+
+    const newProgress = normalizedProgress.map((p) =>
+
+
       p.week === week
         ? {
-            ...p,
-            [field]:
-              field === "modules_completed"
-                ? Math.max(0, Math.min(value, p.total_modules))
-                : Math.max(0, Math.min(value, 100)),
-          }
+          ...p,
+          [field]:
+            field === "modules_completed"
+              ? Math.max(0, Math.min(value, p.total_modules))
+              : Math.max(0, Math.min(value, 100)),
+        }
         : p
     );
 
@@ -715,13 +729,12 @@ function ProgressTab() {
                     return (
                       <div
                         key={week.week}
-                        className={`week-progress-card ${
-                          status === "Completed"
-                            ? "week-progress-card--completed"
-                            : status === "Skipped"
+                        className={`week-progress-card ${status === "Completed"
+                          ? "week-progress-card--completed"
+                          : status === "Skipped"
                             ? "week-progress-card--skipped"
                             : ""
-                        }`}
+                          }`}
                       >
                         <div className="week-title-row">
                           <div className="week-label">Week {week.week}</div>
