@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import "./index.css";
 import {
   getLearners,
@@ -332,93 +332,757 @@ function PlacementTab() {
   );
 }
 
+
 /* =========================================================
-   SCHEDULE TAB (funcionalidad acorde al original, sin cambios visuales)
+   SCHEDULE TAB (funcional)
    ========================================================= */
 
-type TrackKey = "engineer" | "architect";
-type WeekItem = { week: number; title: string; meta: string };
-
-const trackWeeks: Record<TrackKey, WeekItem[]> = {
-  engineer: [
-    {
-      week: 1,
-      title: "Foundations: Python & LLM Basics",
-      meta: "6 hrs/day · Fundamentals, tooling, mental models",
-    },
-    {
-      week: 2,
-      title: "LLM APIs & Advanced Prompting",
-      meta: "7 hrs/day · API usage, patterns, prompt libraries",
-    },
-    {
-      week: 3,
-      title: "AI Frameworks: LangChain & LlamaIndex",
-      meta: "7 hrs/day · Chains, graphs, tools, context integration",
-    },
-    {
-      week: 4,
-      title: "RAG & Context Engineering",
-      meta: "7 hrs/day · Retrieval quality, evals, hybrid search",
-    },
-    {
-      week: 5,
-      title: "Agent Orchestration & Advanced Patterns",
-      meta: "7 hrs/day · Multi-agent systems, workflows, tools",
-    },
-    {
-      week: 6,
-      title: "Quality, Safety & Production Deployment",
-      meta: "7 hrs/day · Guardrails, monitoring, rollout",
-    },
-    {
-      week: 7,
-      title: "Capstone Project & Certification",
-      meta: "8 hrs/day · Final build & exam",
-    },
-  ],
-  architect: [
-    {
-      week: 1,
-      title: "AI Architecture Foundations",
-      meta: "6 hrs/day · Patterns, requirements, solution framing",
-    },
-    {
-      week: 2,
-      title: "Vector Databases & Data Architecture",
-      meta: "7 hrs/day · Indexing, retrieval design, data pipelines",
-    },
-    {
-      week: 3,
-      title: "Cloud Infrastructure & IaC",
-      meta: "7 hrs/day · IaC, scalability, observability foundations",
-    },
-    {
-      week: 4,
-      title: "Integration Patterns & APIs",
-      meta: "7 hrs/day · API design, security, enterprise integration",
-    },
-    {
-      week: 5,
-      title: "Cost Optimization & Risk Management",
-      meta: "7 hrs/day · Cost modeling, governance, risk controls",
-    },
-    {
-      week: 6,
-      title: "Stakeholder Management & Documentation",
-      meta: "7 hrs/day · Stakeholders, documentation, decision records",
-    },
-    {
-      week: 7,
-      title: "Capstone Architecture Project",
-      meta: "8 hrs/day · Reference architecture & review board",
-    },
-  ],
+type ScheduleModule = {
+  title: string;
+  duration: string;
+  link: string;
+  type: string;
 };
 
+type ScheduleDay = {
+  day: string;
+  modules: ScheduleModule[];
+};
+
+type ScheduleAssessment = {
+  passingScore: number;
+  topics: string[];
+};
+
+type ScheduleWeek = {
+  week: number;
+  title: string;
+  dailyHours: number;
+  days: ScheduleDay[];
+  assessment: ScheduleAssessment;
+};
+
+const bootcampSchedule = {
+    engineer: [
+      {
+        week: 1,
+        title: 'Foundations: Python & LLM Basics',
+        dailyHours: 6,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Python Essentials for AI', duration: '2h', link: 'https://www.linkedin.com/learning/python-essential-training-18764650', type: 'video' },
+              { title: 'Introduction to Large Language Models', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-large-language-models', type: 'video' },
+              { title: 'Hands-on: Python Environment Setup', duration: '2h', link: 'https://www.linkedin.com/learning/learning-python-14320080', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Async Programming in Python', duration: '2h', link: 'https://www.linkedin.com/learning/async-programming-in-python', type: 'video' },
+              { title: 'Working with APIs in Python', duration: '2h', link: 'https://www.linkedin.com/learning/python-working-with-web-apis', type: 'video' },
+              { title: 'Lab: Building Your First API Client', duration: '2h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Understanding Transformers & Attention', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-ai-and-machine-learning', type: 'video' },
+              { title: 'Token Economics & Context Windows', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Lab: Token Counting & Cost Estimation', duration: '2h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Introduction to Prompt Engineering', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-prompt-engineering-for-generative-ai', type: 'video' },
+              { title: 'Model Selection & Comparison', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Lab: Testing Different LLM Models', duration: '2h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 1 Project: Build a Simple LLM Application', duration: '4h', link: 'internal-project', type: 'project' },
+              { title: 'Week 1 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 70,
+          topics: ['Python basics', 'LLM fundamentals', 'API usage', 'Basic prompting']
+        }
+      },
+      {
+        week: 2,
+        title: 'LLM APIs & Advanced Prompting',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'OpenAI API Deep Dive', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-the-openai-api', type: 'video' },
+              { title: 'Anthropic Claude API', duration: '2h', link: 'https://docs.anthropic.com/en/docs/quickstart', type: 'docs' },
+              { title: 'Lab: API Authentication & Basic Calls', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Advanced Prompt Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/prompt-engineering-how-to-talk-to-the-ais', type: 'video' },
+              { title: 'Chain-of-Thought Prompting', duration: '2h', link: 'https://www.linkedin.com/learning/advanced-prompt-engineering-for-developers', type: 'video' },
+              { title: 'Lab: Building Complex Prompts', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Few-Shot Learning Techniques', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Multi-Step Prompt Structuring', duration: '2.5h', link: 'https://www.linkedin.com/learning/advanced-prompt-engineering-for-developers', type: 'video' },
+              { title: 'Lab: Multi-Turn Conversations', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Function Calling & Tool Use', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-the-openai-api', type: 'video' },
+              { title: 'Streaming Responses', duration: '2h', link: 'https://docs.anthropic.com/en/docs/build-with-claude/streaming', type: 'docs' },
+              { title: 'Lab: Building Tools for LLMs', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 2 Project: Prompt Engineering Challenge', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 2 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 75,
+          topics: ['API integration', 'Advanced prompting', 'Function calling', 'Prompt optimization']
+        }
+      },
+      {
+        week: 3,
+        title: 'AI Frameworks: LangChain & LlamaIndex',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Introduction to LangChain', duration: '2.5h', link: 'https://www.linkedin.com/learning/introduction-to-langchain', type: 'video' },
+              { title: 'LangChain Core Concepts', duration: '2h', link: 'https://python.langchain.com/docs/get_started/introduction', type: 'docs' },
+              { title: 'Lab: First LangChain Application', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Chains and Sequences', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
+              { title: 'Memory Systems', duration: '2h', link: 'https://python.langchain.com/docs/modules/memory/', type: 'docs' },
+              { title: 'Lab: Building Stateful Conversations', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'LangChain Agents Architecture', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-agents-with-langchain', type: 'video' },
+              { title: 'Tool Integration Patterns', duration: '2h', link: 'https://python.langchain.com/docs/modules/agents/', type: 'docs' },
+              { title: 'Lab: Creating Custom Tools', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Introduction to LlamaIndex', duration: '2h', link: 'https://docs.llamaindex.ai/en/stable/', type: 'docs' },
+              { title: 'Data Connectors & Loaders', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
+              { title: 'Lab: Building Data Ingestion Pipelines', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 3 Project: Multi-Agent System', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 3 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 75,
+          topics: ['LangChain fundamentals', 'Agent architecture', 'Memory systems', 'Tool integration']
+        }
+      },
+      {
+        week: 4,
+        title: 'RAG & Context Engineering',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Embeddings & Vector Representations', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
+              { title: 'Vector Databases Overview', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Lab: Creating and Storing Embeddings', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'RAG Architecture & Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/retrieval-augmented-generation-rag', type: 'video' },
+              { title: 'Chunking Strategies', duration: '2h', link: 'https://python.langchain.com/docs/modules/data_connection/', type: 'docs' },
+              { title: 'Lab: Building Your First RAG System', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Advanced Retrieval Strategies', duration: '2.5h', link: 'https://www.linkedin.com/learning/retrieval-augmented-generation-rag', type: 'video' },
+              { title: 'Hybrid Search (Vector + Keyword)', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Optimizing Retrieval Quality', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Context Assembly & Optimization', duration: '2.5h', link: 'https://www.linkedin.com/learning/prompt-engineering-how-to-talk-to-the-ais', type: 'video' },
+              { title: 'Reranking & Filtering', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Advanced RAG Optimization', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 4 Project: Production RAG System', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 4 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 80,
+          topics: ['Embeddings', 'Vector databases', 'RAG architecture', 'Retrieval optimization']
+        }
+      },
+      {
+        week: 5,
+        title: 'Agent Orchestration & Advanced Patterns',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Agentic Workflow Design', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-agents-with-langchain', type: 'video' },
+              { title: 'Multi-Agent Architectures', duration: '2h', link: 'https://python.langchain.com/docs/use_cases/multi_agent/', type: 'docs' },
+              { title: 'Lab: Designing Agent Workflows', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Task Decomposition & Planning', duration: '2.5h', link: 'https://www.linkedin.com/learning/artificial-intelligence-foundations-thinking-machines', type: 'video' },
+              { title: 'Agent Coordination Patterns', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Building Collaborative Agents', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'State Management in Agents', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-agents-with-langchain', type: 'video' },
+              { title: 'Error Handling & Recovery', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Robust Agent Systems', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Agent Observability & Monitoring', duration: '2.5h', link: 'https://www.linkedin.com/learning/machine-learning-operations-mlops-fundamentals', type: 'video' },
+              { title: 'Performance Optimization', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Instrumenting Agents', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 5 Project: Complex Agentic System', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 5 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 80,
+          topics: ['Workflow orchestration', 'Multi-agent systems', 'State management', 'Monitoring']
+        }
+      },
+      {
+        week: 6,
+        title: 'Quality, Safety & Production Deployment',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Agent Testing Strategies', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-testing-foundations-test-techniques', type: 'video' },
+              { title: 'Evaluation Frameworks', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Building Test Suites', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Safety Guardrails & Moderation', duration: '2.5h', link: 'https://www.linkedin.com/learning/artificial-intelligence-foundations-machine-learning', type: 'video' },
+              { title: 'Content Filtering', duration: '2h', link: 'https://platform.openai.com/docs/guides/moderation', type: 'docs' },
+              { title: 'Lab: Implementing Safety Controls', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Deployment Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/devops-foundations-containers', type: 'video' },
+              { title: 'CI/CD for AI Systems', duration: '2h', link: 'https://www.linkedin.com/learning/machine-learning-operations-mlops-fundamentals', type: 'video' },
+              { title: 'Lab: Containerizing Agents', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Monitoring & Alerting', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-prometheus', type: 'video' },
+              { title: 'Cost Optimization', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Production Monitoring Setup', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 6 Project: Production-Ready Agent', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 6 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 80,
+          topics: ['Testing', 'Safety', 'Deployment', 'Monitoring', 'Cost optimization']
+        }
+      },
+      {
+        week: 7,
+        title: 'Capstone Project & Certification',
+        dailyHours: 8,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Capstone Project Kickoff', duration: '1h', link: 'internal-project', type: 'project' },
+              { title: 'Requirements Analysis', duration: '3h', link: 'internal-project', type: 'project' },
+              { title: 'Architecture Design', duration: '4h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Implementation: Core Agent Logic', duration: '8h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Implementation: Integration & Testing', duration: '8h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Deployment & Documentation', duration: '6h', link: 'internal-project', type: 'project' },
+              { title: 'Presentation Preparation', duration: '2h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Final Presentations', duration: '4h', link: 'internal-assessment', type: 'assessment' },
+              { title: 'Final Certification Exam', duration: '3h', link: 'internal-assessment', type: 'assessment' },
+              { title: 'Graduation & Next Steps', duration: '1h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 85,
+          topics: ['End-to-end agent development', 'Production deployment', 'Documentation', 'Presentation']
+        }
+      }
+    ],
+    architect: [
+      {
+        week: 1,
+        title: 'AI Architecture Foundations',
+        dailyHours: 6,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Enterprise Architecture Fundamentals', duration: '2h', link: 'https://www.linkedin.com/learning/enterprise-architecture-foundations', type: 'video' },
+              { title: 'AI System Design Principles', duration: '2h', link: 'https://www.linkedin.com/learning/ai-for-architects', type: 'video' },
+              { title: 'Lab: Analyzing Existing Architectures', duration: '2h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'LLM Architecture Overview', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-large-language-models', type: 'video' },
+              { title: 'Agentic System Patterns', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Lab: Pattern Identification Exercise', duration: '2h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Component Design & Integration', duration: '2h', link: 'https://www.linkedin.com/learning/software-architecture-foundations', type: 'video' },
+              { title: 'Technology Stack Selection', duration: '2h', link: 'https://www.linkedin.com/learning/software-architecture-foundations', type: 'video' },
+              { title: 'Lab: Technology Evaluation Matrix', duration: '2h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Requirements Analysis for AI', duration: '2h', link: 'https://www.linkedin.com/learning/software-design-from-requirements-to-release', type: 'video' },
+              { title: 'Use Case Mapping', duration: '2h', link: 'https://www.linkedin.com/learning/user-experience-for-web-design', type: 'video' },
+              { title: 'Lab: Requirements Documentation', duration: '2h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 1 Project: Solution Design Document', duration: '4h', link: 'internal-project', type: 'project' },
+              { title: 'Week 1 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 70,
+          topics: ['Architecture fundamentals', 'AI system design', 'Requirements analysis', 'Documentation']
+        }
+      },
+      {
+        week: 2,
+        title: 'Vector Databases & Data Architecture',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Vector Database Fundamentals', duration: '2.5h', link: 'https://www.linkedin.com/learning/introduction-to-databases', type: 'video' },
+              { title: 'Embeddings Architecture', duration: '2h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
+              { title: 'Lab: Vector DB Comparison Analysis', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Pinecone Architecture', duration: '2h', link: 'https://docs.pinecone.io/', type: 'docs' },
+              { title: 'Weaviate & Milvus Comparison', duration: '2.5h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Designing Vector DB Solutions', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Index Optimization Strategies', duration: '2.5h', link: 'https://www.linkedin.com/learning/database-clinic-sqlite', type: 'video' },
+              { title: 'Performance Tuning', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Performance Benchmarking', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Hybrid Search Architecture', duration: '2.5h', link: 'https://www.linkedin.com/learning/search-techniques-for-web-developers', type: 'video' },
+              { title: 'Data Pipeline Design', duration: '2h', link: 'https://www.linkedin.com/learning/data-pipeline-automation', type: 'video' },
+              { title: 'Lab: End-to-End Data Architecture', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 2 Project: Vector DB Architecture Design', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 2 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 75,
+          topics: ['Vector databases', 'Index optimization', 'Performance design', 'Data pipelines']
+        }
+      },
+      {
+        week: 3,
+        title: 'Cloud Infrastructure & IaC',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Cloud Architecture Fundamentals', duration: '2.5h', link: 'https://www.linkedin.com/learning/aws-essential-training-for-architects', type: 'video' },
+              { title: 'Infrastructure as Code Principles', duration: '2h', link: 'https://www.linkedin.com/learning/learning-infrastructure-as-code', type: 'video' },
+              { title: 'Lab: Cloud Architecture Diagrams', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Terraform Fundamentals', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-terraform-15575129', type: 'video' },
+              { title: 'CloudFormation Basics', duration: '2h', link: 'https://www.linkedin.com/learning/amazon-web-services-deploying-and-provisioning', type: 'video' },
+              { title: 'Lab: IaC for AI Workloads', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'AI Infrastructure Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/machine-learning-operations-mlops-fundamentals', type: 'video' },
+              { title: 'Compute & Storage for LLMs', duration: '2h', link: 'https://www.linkedin.com/learning/aws-essential-training-for-architects', type: 'video' },
+              { title: 'Lab: Designing AI Infrastructure', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Auto-scaling & Load Balancing', duration: '2.5h', link: 'https://www.linkedin.com/learning/amazon-web-services-high-availability', type: 'video' },
+              { title: 'Deployment Automation', duration: '2h', link: 'https://www.linkedin.com/learning/devops-foundations-continuous-delivery-continuous-integration', type: 'video' },
+              { title: 'Lab: Scalable Architecture Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 3 Project: Complete Infrastructure Design', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 3 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 75,
+          topics: ['Cloud architecture', 'Terraform/CloudFormation', 'AI infrastructure', 'Scalability']
+        }
+      },
+      {
+        week: 4,
+        title: 'Integration Patterns & APIs',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'API Architecture & Design', duration: '2.5h', link: 'https://www.linkedin.com/learning/api-development-and-management', type: 'video' },
+              { title: 'Microservices for AI', duration: '2h', link: 'https://www.linkedin.com/learning/microservices-foundations', type: 'video' },
+              { title: 'Lab: API Design Exercise', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Event-Driven Architectures', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-architecture-patterns-for-developers', type: 'video' },
+              { title: 'Message Queues & Streams', duration: '2h', link: 'https://www.linkedin.com/learning/learning-apache-kafka', type: 'video' },
+              { title: 'Lab: Event-Driven AI Systems', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Enterprise Integration Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-architecture-patterns-for-developers', type: 'video' },
+              { title: 'Legacy System Integration', duration: '2h', link: 'https://www.linkedin.com/learning/enterprise-architecture-foundations', type: 'video' },
+              { title: 'Lab: Integration Strategy Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Security Architecture', duration: '2.5h', link: 'https://www.linkedin.com/learning/cybersecurity-architecture-standards-and-frameworks', type: 'video' },
+              { title: 'Authentication & Authorization', duration: '2h', link: 'https://www.linkedin.com/learning/programming-foundations-apis-and-web-services', type: 'video' },
+              { title: 'Lab: Secure AI System Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 4 Project: Enterprise Integration Architecture', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 4 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 80,
+          topics: ['API design', 'Integration patterns', 'Event-driven architecture', 'Security']
+        }
+      },
+      {
+        week: 5,
+        title: 'Cost Optimization & Risk Management',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'AI Cost Modeling', duration: '2.5h', link: 'https://www.linkedin.com/learning/cloud-architecture-cost-optimization', type: 'video' },
+              { title: 'Token Economics', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Cost Estimation Models', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Infrastructure Cost Optimization', duration: '2.5h', link: 'https://www.linkedin.com/learning/aws-cost-management', type: 'video' },
+              { title: 'Caching Strategies', duration: '2h', link: 'https://www.linkedin.com/learning/software-architecture-patterns-for-developers', type: 'video' },
+              { title: 'Lab: Cost Optimization Strategy', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Risk Assessment Frameworks', duration: '2.5h', link: 'https://www.linkedin.com/learning/enterprise-risk-management', type: 'video' },
+              { title: 'AI-Specific Risks', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Risk Matrix Development', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Ethical AI & Governance', duration: '2.5h', link: 'https://www.linkedin.com/learning/artificial-intelligence-ethics-in-practice', type: 'video' },
+              { title: 'Compliance & Regulations', duration: '2h', link: 'https://www.linkedin.com/learning/data-privacy-and-security', type: 'video' },
+              { title: 'Lab: Governance Framework Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 5 Project: Cost & Risk Analysis', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 5 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 80,
+          topics: ['Cost modeling', 'Optimization strategies', 'Risk management', 'Ethics & governance']
+        }
+      },
+      {
+        week: 6,
+        title: 'Stakeholder Management & Documentation',
+        dailyHours: 7,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Technical Communication', duration: '2.5h', link: 'https://www.linkedin.com/learning/communicating-about-architecture', type: 'video' },
+              { title: 'Stakeholder Analysis', duration: '2h', link: 'https://www.linkedin.com/learning/project-management-foundations-stakeholders', type: 'video' },
+              { title: 'Lab: Stakeholder Mapping', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Architecture Documentation', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-architecture-documenting-architecture', type: 'video' },
+              { title: 'Diagramming Best Practices', duration: '2h', link: 'https://www.linkedin.com/learning/learning-uml', type: 'video' },
+              { title: 'Lab: Documentation Creation', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'ROI & Business Case Development', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-a-business-case', type: 'video' },
+              { title: 'Value Proposition Design', duration: '2h', link: 'https://www.linkedin.com/learning/business-analysis-foundations', type: 'video' },
+              { title: 'Lab: Business Case Workshop', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Vendor Evaluation & Selection', duration: '2.5h', link: 'https://www.linkedin.com/learning/vendor-management-foundations', type: 'video' },
+              { title: 'Technology Radar', duration: '2h', link: 'internal-docs', type: 'docs' },
+              { title: 'Lab: Technology Selection Matrix', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Week 6 Project: Complete Solution Proposal', duration: '5h', link: 'internal-project', type: 'project' },
+              { title: 'Week 6 Assessment', duration: '2h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 80,
+          topics: ['Communication', 'Documentation', 'Business cases', 'Vendor management']
+        }
+      },
+      {
+        week: 7,
+        title: 'Capstone Architecture Project',
+        dailyHours: 8,
+        days: [
+          {
+            day: 'Monday',
+            modules: [
+              { title: 'Capstone Project Kickoff', duration: '1h', link: 'internal-project', type: 'project' },
+              { title: 'Requirements Gathering & Analysis', duration: '7h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Tuesday',
+            modules: [
+              { title: 'Solution Architecture Design', duration: '8h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Wednesday',
+            modules: [
+              { title: 'Technical Documentation & Diagrams', duration: '8h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Thursday',
+            modules: [
+              { title: 'Business Case & ROI Analysis', duration: '4h', link: 'internal-project', type: 'project' },
+              { title: 'Risk Assessment & Mitigation Plan', duration: '4h', link: 'internal-project', type: 'project' }
+            ]
+          },
+          {
+            day: 'Friday',
+            modules: [
+              { title: 'Final Architecture Presentations', duration: '4h', link: 'internal-assessment', type: 'assessment' },
+              { title: 'Final Certification Exam', duration: '3h', link: 'internal-assessment', type: 'assessment' },
+              { title: 'Graduation & Next Steps', duration: '1h', link: 'internal-assessment', type: 'assessment' }
+            ]
+          }
+        ],
+        assessment: {
+          passingScore: 85,
+          topics: ['Complete solution architecture', 'Documentation', 'Business case', 'Presentation']
+        }
+      }
+    ]
+  }
+
+type TrackKey = "engineer" | "architect";
+
 function ScheduleTab() {
-  const [selectedTrack, setSelectedTrack] = useState<TrackKey>("engineer");
-  const weeks = trackWeeks[selectedTrack];
+  const [track, setTrack] = useState<TrackKey>("engineer");
+  const [expandedWeek, setExpandedWeek] = useState<number | null>(null);
+
+  const weeksForTrack: ScheduleWeek[] = (bootcampSchedule as any)[track] || [];
+
+  const toggleWeek = (weekNum: number) => {
+    setExpandedWeek((prev) => (prev === weekNum ? null : weekNum));
+  };
+
+  const handleKeyToggle = (e: KeyboardEvent, weekNum: number) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleWeek(weekNum);
+    }
+  };
+
+  const trackLabel =
+    track === "engineer"
+      ? "Agentic AI Engineer Track"
+      : "AI Agentic Solution Architect Track";
 
   return (
     <div className="grid gap-lg">
@@ -427,32 +1091,128 @@ function ScheduleTab() {
           <div>
             <h2 className="card-title">Training Schedule</h2>
             <p className="card-subtitle">
-              Weeks are designed as building blocks; each one assumes the
-              previous has been completed or validated through the placement
-              test.
+              Weeks are designed as building blocks; each one assumes the previous
+              has been completed or validated through the placement test.
             </p>
           </div>
+
           <select
             className="select"
-            value={selectedTrack}
-            onChange={(e) => setSelectedTrack(e.target.value as TrackKey)}
+            value={trackLabel}
+            onChange={(e) => {
+              const val = e.target.value;
+              const next: TrackKey =
+                val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
+              setTrack(next);
+              setExpandedWeek(null);
+            }}
           >
-            <option value="engineer">Agentic AI Engineer Track</option>
-            <option value="architect">AI Agentic Solution Architect Track</option>
+            <option>Agentic AI Engineer Track</option>
+            <option>AI Agentic Solution Architect Track</option>
           </select>
         </div>
 
         <ol className="week-list">
-          {weeks.map(({ week, title, meta }) => (
-            <li key={week} className="week-item">
-              <div className="week-number">{week}</div>
-              <div>
-                <div className="week-title">{title}</div>
-                <div className="week-meta">{meta}</div>
-              </div>
-              <div className="week-pill">Assessment on Friday</div>
-            </li>
-          ))}
+          {weeksForTrack.map((w) => {
+            const isOpen = expandedWeek === w.week;
+            const meta = `${w.dailyHours} hours/day · Assessment on Friday`;
+
+            return (
+              <li
+                key={w.week}
+                className="week-item"
+                role="button"
+                tabIndex={0}
+                aria-expanded={isOpen}
+                onClick={() => toggleWeek(w.week)}
+                onKeyDown={(e) => handleKeyToggle(e, w.week)}
+                style={{ cursor: "pointer", flexWrap: "wrap" }}
+              >
+                <div className="week-number">{w.week}</div>
+                <div>
+                  <div className="week-title">{w.title}</div>
+                  <div className="week-meta">{meta}</div>
+                </div>
+                <div className="week-pill">Assessment on Friday</div>
+
+                {isOpen && (
+                  <div
+                    className="week-detail"
+                    style={{ flexBasis: "100%", marginTop: "1rem" }}
+                  >
+                    {w.days.map((d) => (
+                      <div key={d.day} style={{ marginTop: "0.75rem" }}>
+                        <div className="section-heading">{d.day}</div>
+
+                        <div style={{ display: "grid", gap: "0.75rem" }}>
+                          {d.modules.map((m, idx) => (
+                            <div
+                              key={`${d.day}-${idx}`}
+                              className="card"
+                              style={{
+                                padding: "0.9rem 1rem",
+                                borderRadius: "12px",
+                                background: "rgba(255,255,255,0.65)",
+                                border: "1px solid rgba(15, 23, 42, 0.08)",
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div style={{ fontWeight: 600 }}>{m.title}</div>
+                              <div className="muted" style={{ marginTop: "0.15rem" }}>
+                                Duration: {m.duration}{" "}
+                                {m.link &&
+                                ![
+                                  "internal-docs",
+                                  "internal-lab",
+                                  "internal-project",
+                                  "internal-assessment",
+                                ].includes(m.link) ? (
+                                  <a
+                                    href={m.link}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ marginLeft: "0.5rem" }}
+                                  >
+                                    Access Course →
+                                  </a>
+                                ) : null}
+                              </div>
+                              <div style={{ marginTop: "0.45rem" }}>
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    padding: "0.15rem 0.45rem",
+                                    borderRadius: "999px",
+                                    fontSize: "0.75rem",
+                                    border: "1px solid rgba(15, 23, 42, 0.12)",
+                                    background: "rgba(15, 23, 42, 0.03)",
+                                  }}
+                                >
+                                  {m.type}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    <div style={{ marginTop: "1rem" }} onClick={(e) => e.stopPropagation()}>
+                      <div className="section-heading">Assessment</div>
+                      <div className="muted">
+                        Passing score: <b>{w.assessment.passingScore}%</b>
+                      </div>
+                      <ul className="simple-list" style={{ marginTop: "0.35rem" }}>
+                        {w.assessment.topics.map((t) => (
+                          <li key={t}>{t}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ol>
       </section>
 
@@ -469,28 +1229,25 @@ function ScheduleTab() {
           <div className="resource-card">
             <h3 className="section-heading">Internal Labs</h3>
             <p className="muted">
-              Hands-on exercises in a safe, sandboxed environment with sample
-              data.
+              Hands-on exercises in a safe, sandboxed environment with sample data.
             </p>
           </div>
           <div className="resource-card">
             <h3 className="section-heading">Instructor Support</h3>
             <p className="muted">
-              Daily office hours and async Q&amp;A for blockers and design
-              reviews.
+              Daily office hours and async Q&amp;A for blockers and design reviews.
             </p>
           </div>
           <div className="resource-card">
             <h3 className="section-heading">Peer Learning</h3>
-            <p className="muted">
-              Cohort collaboration via dedicated Slack / Teams spaces.
-            </p>
+            <p className="muted">Cohort collaboration via dedicated Slack / Teams spaces.</p>
           </div>
         </div>
       </section>
     </div>
   );
 }
+
 
 /* =========================================================
    PROGRESS TAB (LO IMPORTANTE)
