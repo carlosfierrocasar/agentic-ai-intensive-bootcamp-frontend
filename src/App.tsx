@@ -1150,47 +1150,70 @@ function ScheduleTab() {
                               key={`${d.day}-${idx}`}
                               className="card"
                               style={{
-                                padding: "0.9rem 1rem",
+                                padding: "0.55rem 0.75rem",
                                 borderRadius: "12px",
                                 background: "rgba(255,255,255,0.65)",
                                 border: "1px solid rgba(15, 23, 42, 0.08)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.85rem",
                               }}
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <div style={{ fontWeight: 600 }}>{m.title}</div>
-                              <div className="muted" style={{ marginTop: "0.15rem" }}>
-                                Duration: {m.duration}{" "}
-                                {m.link &&
-                                ![
-                                  "internal-docs",
-                                  "internal-lab",
-                                  "internal-project",
-                                  "internal-assessment",
-                                ].includes(m.link) ? (
-                                  <a
-                                    href={m.link}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{ marginLeft: "0.5rem" }}
-                                  >
-                                    Access Course →
-                                  </a>
-                                ) : null}
-                              </div>
-                              <div style={{ marginTop: "0.45rem" }}>
-                                <span
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
                                   style={{
-                                    display: "inline-block",
-                                    padding: "0.15rem 0.45rem",
-                                    borderRadius: "999px",
-                                    fontSize: "0.75rem",
-                                    border: "1px solid rgba(15, 23, 42, 0.12)",
-                                    background: "rgba(15, 23, 42, 0.03)",
+                                    fontWeight: 600,
+                                    lineHeight: 1.2,
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                  title={m.title}
+                                >
+                                  {m.title}
+                                </div>
+
+                                <div
+                                  className="muted"
+                                  style={{
+                                    marginTop: "0.1rem",
+                                    fontSize: "0.85rem",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                    flexWrap: "wrap",
                                   }}
                                 >
-                                  {m.type}
-                                </span>
+                                  <span>Duration: {m.duration}</span>
+
+                                  {m.link &&
+                                  ![
+                                    "internal-docs",
+                                    "internal-lab",
+                                    "internal-project",
+                                    "internal-assessment",
+                                  ].includes(m.link) ? (
+                                    <a href={m.link} target="_blank" rel="noreferrer">
+                                      Access Course →
+                                    </a>
+                                  ) : null}
+                                </div>
                               </div>
+
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "0.2rem 0.55rem",
+                                  borderRadius: "999px",
+                                  fontSize: "0.75rem",
+                                  border: "1px solid rgba(15, 23, 42, 0.12)",
+                                  background: "rgba(15, 23, 42, 0.03)",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {m.type}
+                              </span>
                             </div>
                           ))}
                         </div>
