@@ -333,10 +333,13 @@ function PlacementTab() {
 }
 
 /* =========================================================
-   SCHEDULE TAB (solo UI)
+   SCHEDULE TAB (funcionalidad acorde al original, sin cambios visuales)
    ========================================================= */
 
-const TRACKS = {
+type TrackKey = "engineer" | "architect";
+type WeekItem = { week: number; title: string; meta: string };
+
+const trackWeeks: Record<TrackKey, WeekItem[]> = {
   engineer: [
     {
       week: 1,
@@ -373,51 +376,50 @@ const TRACKS = {
       title: "Capstone Project & Certification",
       meta: "8 hrs/day · Final build & exam",
     },
-],
+  ],
   architect: [
     {
       week: 1,
       title: "AI Architecture Foundations",
-      meta: "6 hrs/day · Architecture fundamentals & agentic patterns",
+      meta: "6 hrs/day · Patterns, requirements, solution framing",
     },
     {
       week: 2,
       title: "Vector Databases & Data Architecture",
-      meta: "7 hrs/day · Embeddings, indexes, data pipelines",
+      meta: "7 hrs/day · Indexing, retrieval design, data pipelines",
     },
     {
       week: 3,
       title: "Cloud Infrastructure & IaC",
-      meta: "7 hrs/day · Cloud design, IaC, scalability",
+      meta: "7 hrs/day · IaC, scalability, observability foundations",
     },
     {
       week: 4,
       title: "Integration Patterns & APIs",
-      meta: "7 hrs/day · APIs, integration, security",
+      meta: "7 hrs/day · API design, security, enterprise integration",
     },
     {
       week: 5,
       title: "Cost Optimization & Risk Management",
-      meta: "7 hrs/day · Cost modeling, caching, risk",
+      meta: "7 hrs/day · Cost modeling, governance, risk controls",
     },
     {
       week: 6,
       title: "Stakeholder Management & Documentation",
-      meta: "7 hrs/day · Docs, diagrams, communication",
+      meta: "7 hrs/day · Stakeholders, documentation, decision records",
     },
     {
       week: 7,
       title: "Capstone Architecture Project",
-      meta: "8 hrs/day · End-to-end architecture & presentation",
+      meta: "8 hrs/day · Reference architecture & review board",
     },
-],
-} as const;
-
-type TrackKey = keyof typeof TRACKS;
+  ],
+};
 
 function ScheduleTab() {
-  const [selectedRole, setSelectedRole] = useState<TrackKey>("engineer");
-  const weeks = TRACKS[selectedRole];
+  const [selectedTrack, setSelectedTrack] = useState<TrackKey>("engineer");
+  const weeks = trackWeeks[selectedTrack];
+
   return (
     <div className="grid gap-lg">
       <section className="card card--soft">
@@ -432,8 +434,8 @@ function ScheduleTab() {
           </div>
           <select
             className="select"
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value as TrackKey)}
+            value={selectedTrack}
+            onChange={(e) => setSelectedTrack(e.target.value as TrackKey)}
           >
             <option value="engineer">Agentic AI Engineer Track</option>
             <option value="architect">AI Agentic Solution Architect Track</option>
