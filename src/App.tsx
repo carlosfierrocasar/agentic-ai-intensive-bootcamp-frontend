@@ -336,45 +336,88 @@ function PlacementTab() {
    SCHEDULE TAB (solo UI)
    ========================================================= */
 
-const weeks = [
-  {
-    week: 1,
-    title: "Foundations: Python & LLM Basics",
-    meta: "6 hrs/day · Fundamentals, tooling, mental models",
-  },
-  {
-    week: 2,
-    title: "LLM APIs & Advanced Prompting",
-    meta: "7 hrs/day · API usage, patterns, prompt libraries",
-  },
-  {
-    week: 3,
-    title: "AI Frameworks: LangChain & LlamaIndex",
-    meta: "7 hrs/day · Chains, graphs, tools, context integration",
-  },
-  {
-    week: 4,
-    title: "RAG & Context Engineering",
-    meta: "7 hrs/day · Retrieval quality, evals, hybrid search",
-  },
-  {
-    week: 5,
-    title: "Agent Orchestration & Advanced Patterns",
-    meta: "7 hrs/day · Multi-agent systems, workflows, tools",
-  },
-  {
-    week: 6,
-    title: "Quality, Safety & Production Deployment",
-    meta: "7 hrs/day · Guardrails, monitoring, rollout",
-  },
-  {
-    week: 7,
-    title: "Capstone Project & Certification",
-    meta: "8 hrs/day · Final build & exam",
-  },
-];
+const TRACKS = {
+  engineer: [
+    {
+      week: 1,
+      title: "Foundations: Python & LLM Basics",
+      meta: "6 hrs/day · Fundamentals, tooling, mental models",
+    },
+    {
+      week: 2,
+      title: "LLM APIs & Advanced Prompting",
+      meta: "7 hrs/day · API usage, patterns, prompt libraries",
+    },
+    {
+      week: 3,
+      title: "AI Frameworks: LangChain & LlamaIndex",
+      meta: "7 hrs/day · Chains, graphs, tools, context integration",
+    },
+    {
+      week: 4,
+      title: "RAG & Context Engineering",
+      meta: "7 hrs/day · Retrieval quality, evals, hybrid search",
+    },
+    {
+      week: 5,
+      title: "Agent Orchestration & Advanced Patterns",
+      meta: "7 hrs/day · Multi-agent systems, workflows, tools",
+    },
+    {
+      week: 6,
+      title: "Quality, Safety & Production Deployment",
+      meta: "7 hrs/day · Guardrails, monitoring, rollout",
+    },
+    {
+      week: 7,
+      title: "Capstone Project & Certification",
+      meta: "8 hrs/day · Final build & exam",
+    },
+],
+  architect: [
+    {
+      week: 1,
+      title: "AI Architecture Foundations",
+      meta: "6 hrs/day · Architecture fundamentals & agentic patterns",
+    },
+    {
+      week: 2,
+      title: "Vector Databases & Data Architecture",
+      meta: "7 hrs/day · Embeddings, indexes, data pipelines",
+    },
+    {
+      week: 3,
+      title: "Cloud Infrastructure & IaC",
+      meta: "7 hrs/day · Cloud design, IaC, scalability",
+    },
+    {
+      week: 4,
+      title: "Integration Patterns & APIs",
+      meta: "7 hrs/day · APIs, integration, security",
+    },
+    {
+      week: 5,
+      title: "Cost Optimization & Risk Management",
+      meta: "7 hrs/day · Cost modeling, caching, risk",
+    },
+    {
+      week: 6,
+      title: "Stakeholder Management & Documentation",
+      meta: "7 hrs/day · Docs, diagrams, communication",
+    },
+    {
+      week: 7,
+      title: "Capstone Architecture Project",
+      meta: "8 hrs/day · End-to-end architecture & presentation",
+    },
+],
+} as const;
+
+type TrackKey = keyof typeof TRACKS;
 
 function ScheduleTab() {
+  const [selectedRole, setSelectedRole] = useState<TrackKey>("engineer");
+  const weeks = TRACKS[selectedRole];
   return (
     <div className="grid gap-lg">
       <section className="card card--soft">
@@ -387,9 +430,13 @@ function ScheduleTab() {
               test.
             </p>
           </div>
-          <select className="select">
-            <option>Agentic AI Engineer Track</option>
-            <option>AI Agentic Solution Architect Track</option>
+          <select
+            className="select"
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value as TrackKey)}
+          >
+            <option value="engineer">Agentic AI Engineer Track</option>
+            <option value="architect">AI Agentic Solution Architect Track</option>
           </select>
         </div>
 
