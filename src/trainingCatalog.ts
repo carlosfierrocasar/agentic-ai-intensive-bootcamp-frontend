@@ -72,5 +72,4 @@ export type TrainingResource = {
     WWW_LINKEDIN_COM_LEARNING_SOFTWARE_TESTING_FOUNDATIONS_TEST_TECHNIQUES: { url: "https://www.linkedin.com/learning/software-testing-foundations-test-techniques" },
     WWW_LINKEDIN_COM_LEARNING_USER_EXPERIENCE_FOR_WEB_DESIGN: { url: "https://www.linkedin.com/learning/user-experience-for-web-design" },
     WWW_LINKEDIN_COM_LEARNING_VENDOR_MANAGEMENT_FOUNDATIONS: { url: "https://www.linkedin.com/learning/vendor-management-foundations" },
-  };
-  
+  };  
