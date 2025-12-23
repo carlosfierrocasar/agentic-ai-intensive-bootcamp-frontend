@@ -1,5 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import "./index.css";
+import { TRAINING_RESOURCES } from "./trainingResources";
 import {
   getLearners,
   createLearner,
@@ -372,32 +373,32 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Python Essentials for AI', duration: '2h', link: 'https://www.linkedin.com/learning/python-essential-training-18764650', type: 'video' },
-              { title: 'Introduction to Large Language Models', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-large-language-models', type: 'video' },
-              { title: 'Hands-on: Python Environment Setup', duration: '2h', link: 'https://www.linkedin.com/learning/learning-python-14320080', type: 'lab' }
+              { title: 'Introduction to SQLite', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_PYTHON_ESSENTIAL_TRAINING_18764650, type: 'video' },
+              { title: 'Introduction to Large Language Models', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_INTRODUCTION_TO_LARGE_LANGUAGE_MODELS, type: 'video' },
+              { title: 'Hands-on: Python Environment Setup', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_LEARNING_PYTHON_25309312, type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Async Programming in Python', duration: '2h', link: 'https://www.linkedin.com/learning/async-programming-in-python', type: 'video' },
-              { title: 'Working with APIs in Python', duration: '2h', link: 'https://www.linkedin.com/learning/python-working-with-web-apis', type: 'video' },
+              { title: 'Async Programming in Python', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ASYNCHRONOUS_PYTHON_BOOST_PERFORMANCE_AND_EFFICIENCY_F, type: 'video' },
+              { title: 'Working with APIs in Python', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_PYTHON_WORKING_WITH_REST_AND_WEB_DATA, type: 'video' },
               { title: 'Lab: Building Your First API Client', duration: '2h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Understanding Transformers & Attention', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-ai-and-machine-learning', type: 'video' },
-              { title: 'Token Economics & Context Windows', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Understanding Transformers & Attention', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_AI_FUNDAMENTALS_FOR_DATA_PROFESSIONALS, type: 'video' },
+              { title: 'Token Economics & Context Windows', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS, type: 'video' },
               { title: 'Lab: Token Counting & Cost Estimation', duration: '2h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Introduction to Prompt Engineering', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-prompt-engineering-for-generative-ai', type: 'video' },
-              { title: 'Model Selection & Comparison', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Introduction to Prompt Engineering', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_INTRODUCTION_TO_PROMPT_ENGINEERING_FOR_GENERATIVE_AI_2, type: 'video' },
+              { title: 'Model Selection & Comparison', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS, type: 'video' },
               { title: 'Lab: Testing Different LLM Models', duration: '2h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -422,32 +423,32 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'OpenAI API Deep Dive', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-the-openai-api', type: 'video' },
-              { title: 'Anthropic Claude API', duration: '2h', link: 'https://docs.anthropic.com/en/docs/quickstart', type: 'docs' },
+              { title: 'OpenAI API Deep Dive', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_OPENAI_API_INTRODUCTION, type: 'video' },
+              { title: 'OpenAI API: Introduction', duration: '2h', link: TRAINING_RESOURCES.DOCS_ANTHROPIC_COM_EN_DOCS_QUICKSTART, type: 'docs' },
               { title: 'Lab: API Authentication & Basic Calls', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Advanced Prompt Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/prompt-engineering-how-to-talk-to-the-ais', type: 'video' },
-              { title: 'Chain-of-Thought Prompting', duration: '2h', link: 'https://www.linkedin.com/learning/advanced-prompt-engineering-for-developers', type: 'video' },
-              { title: 'Lab: Building Complex Prompts', duration: '2.5h', link: 'internal-lab', type: 'lab' }
+              { title: 'Advanced Prompt Patterns', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_PROMPT_ENGINEERING_HOW_TO_TALK_TO_THE_AIS, type: 'video' },
+              { title: 'Chain-of-Thought Prompting', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ADVANCED_PROMPT_ENGINEERING_TECHNIQUES, type: 'video' },
+              { title: 'Advanced Prompt Engineering Techniques', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Few-Shot Learning Techniques', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
-              { title: 'Multi-Step Prompt Structuring', duration: '2.5h', link: 'https://www.linkedin.com/learning/advanced-prompt-engineering-for-developers', type: 'video' },
+              { title: 'Few-Shot Learning Techniques', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS, type: 'video' },
+              { title: 'Multi-Step Prompt Structuring', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ADVANCED_PROMPT_ENGINEERING_TECHNIQUES, type: 'video' },
               { title: 'Lab: Multi-Turn Conversations', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Function Calling & Tool Use', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-the-openai-api', type: 'video' },
-              { title: 'Streaming Responses', duration: '2h', link: 'https://docs.anthropic.com/en/docs/build-with-claude/streaming', type: 'docs' },
+              { title: 'Function Calling & Tool Use', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_OPENAI_API_INTRODUCTION, type: 'video' },
+              { title: 'Streaming Responses', duration: '2h', link: TRAINING_RESOURCES.DOCS_ANTHROPIC_COM_EN_DOCS_BUILD_WITH_CLAUDE_STREAMING, type: 'docs' },
               { title: 'Lab: Building Tools for LLMs', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -472,32 +473,32 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Introduction to LangChain', duration: '2.5h', link: 'https://www.linkedin.com/learning/introduction-to-langchain', type: 'video' },
-              { title: 'LangChain Core Concepts', duration: '2h', link: 'https://python.langchain.com/docs/get_started/introduction', type: 'docs' },
+              { title: 'Introduction to LangChain', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_PROMPT_ENGINEERING_WITH_LANGCHAIN, type: 'video' },
+              { title: 'LangChain Core Concepts', duration: '2h', link: TRAINING_RESOURCES.PYTHON_LANGCHAIN_COM_DOCS_GET_STARTED_INTRODUCTION, type: 'docs' },
               { title: 'Lab: First LangChain Application', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Chains and Sequences', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
-              { title: 'Memory Systems', duration: '2h', link: 'https://python.langchain.com/docs/modules/memory/', type: 'docs' },
+              { title: 'Chains and Sequences', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN, type: 'video' },
+              { title: 'Memory Systems', duration: '2h', link: TRAINING_RESOURCES.PYTHON_LANGCHAIN_COM_DOCS_MODULES_MEMORY, type: 'docs' },
               { title: 'Lab: Building Stateful Conversations', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'LangChain Agents Architecture', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-agents-with-langchain', type: 'video' },
-              { title: 'Tool Integration Patterns', duration: '2h', link: 'https://python.langchain.com/docs/modules/agents/', type: 'docs' },
+              { title: 'LangChain Agents Architecture', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_AGENTS_WITH_LANGCHAIN, type: 'video' },
+              { title: 'Tool Integration Patterns', duration: '2h', link: TRAINING_RESOURCES.PYTHON_LANGCHAIN_COM_DOCS_MODULES_AGENTS, type: 'docs' },
               { title: 'Lab: Creating Custom Tools', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Introduction to LlamaIndex', duration: '2h', link: 'https://docs.llamaindex.ai/en/stable/', type: 'docs' },
-              { title: 'Data Connectors & Loaders', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
+              { title: 'Introduction to LlamaIndex', duration: '2h', link: TRAINING_RESOURCES.DOCS_LLAMAINDEX_AI_EN_STABLE, type: 'docs' },
+              { title: 'Data Connectors & Loaders', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN, type: 'video' },
               { title: 'Lab: Building Data Ingestion Pipelines', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -522,23 +523,23 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Embeddings & Vector Representations', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
-              { title: 'Vector Databases Overview', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'Embeddings & Vector Representations', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN, type: 'video' },
+              { title: 'Vector Databases Overview', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS, type: 'video' },
               { title: 'Lab: Creating and Storing Embeddings', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'RAG Architecture & Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/retrieval-augmented-generation-rag', type: 'video' },
-              { title: 'Chunking Strategies', duration: '2h', link: 'https://python.langchain.com/docs/modules/data_connection/', type: 'docs' },
+              { title: 'RAG Architecture & Patterns', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_HANDS_ON_AI_INTRODUCTION_TO_RETRIEVAL_AUGMENTED_GENERA, type: 'video' },
+              { title: 'Hands-on AI: Introduction to Retrieval-Augmented Generation (RAG)', duration: '2h', link: TRAINING_RESOURCES.PYTHON_LANGCHAIN_COM_DOCS_MODULES_DATA_CONNECTION, type: 'docs' },
               { title: 'Lab: Building Your First RAG System', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Advanced Retrieval Strategies', duration: '2.5h', link: 'https://www.linkedin.com/learning/retrieval-augmented-generation-rag', type: 'video' },
+              { title: 'Advanced Retrieval Strategies', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_HANDS_ON_AI_INTRODUCTION_TO_RETRIEVAL_AUGMENTED_GENERA, type: 'video' },
               { title: 'Hybrid Search (Vector + Keyword)', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Optimizing Retrieval Quality', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -546,7 +547,7 @@ const bootcampSchedule = {
           {
             day: 'Thursday',
             modules: [
-              { title: 'Context Assembly & Optimization', duration: '2.5h', link: 'https://www.linkedin.com/learning/prompt-engineering-how-to-talk-to-the-ais', type: 'video' },
+              { title: 'Context Assembly & Optimization', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_PROMPT_ENGINEERING_HOW_TO_TALK_TO_THE_AIS, type: 'video' },
               { title: 'Reranking & Filtering', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Advanced RAG Optimization', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -572,15 +573,15 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Agentic Workflow Design', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-agents-with-langchain', type: 'video' },
-              { title: 'Multi-Agent Architectures', duration: '2h', link: 'https://python.langchain.com/docs/use_cases/multi_agent/', type: 'docs' },
+              { title: 'Agentic Workflow Design', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_AGENTS_WITH_LANGCHAIN, type: 'video' },
+              { title: 'Multi-Agent Architectures', duration: '2h', link: TRAINING_RESOURCES.PYTHON_LANGCHAIN_COM_DOCS_USE_CASES_MULTI_AGENT, type: 'docs' },
               { title: 'Lab: Designing Agent Workflows', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Task Decomposition & Planning', duration: '2.5h', link: 'https://www.linkedin.com/learning/artificial-intelligence-foundations-thinking-machines', type: 'video' },
+              { title: 'Task Decomposition & Planning', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ARTIFICIAL_INTELLIGENCE_FOUNDATIONS_THINKING_MACHINES, type: 'video' },
               { title: 'Agent Coordination Patterns', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Building Collaborative Agents', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -588,7 +589,7 @@ const bootcampSchedule = {
           {
             day: 'Wednesday',
             modules: [
-              { title: 'State Management in Agents', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-ai-agents-with-langchain', type: 'video' },
+              { title: 'State Management in Agents', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_AGENTS_WITH_LANGCHAIN, type: 'video' },
               { title: 'Error Handling & Recovery', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Robust Agent Systems', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -596,7 +597,7 @@ const bootcampSchedule = {
           {
             day: 'Thursday',
             modules: [
-              { title: 'Agent Observability & Monitoring', duration: '2.5h', link: 'https://www.linkedin.com/learning/machine-learning-operations-mlops-fundamentals', type: 'video' },
+              { title: 'Agent Observability & Monitoring', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_MACHINE_LEARNING_OPERATIONS_MLOPS_FUNDAMENTALS, type: 'video' },
               { title: 'Performance Optimization', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Instrumenting Agents', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -622,7 +623,7 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Agent Testing Strategies', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-testing-foundations-test-techniques', type: 'video' },
+              { title: 'Agent Testing Strategies', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_TESTING_FOUNDATIONS_TEST_TECHNIQUES, type: 'video' },
               { title: 'Evaluation Frameworks', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Building Test Suites', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -630,23 +631,23 @@ const bootcampSchedule = {
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Safety Guardrails & Moderation', duration: '2.5h', link: 'https://www.linkedin.com/learning/artificial-intelligence-foundations-machine-learning', type: 'video' },
-              { title: 'Content Filtering', duration: '2h', link: 'https://platform.openai.com/docs/guides/moderation', type: 'docs' },
+              { title: 'Safety Guardrails & Moderation', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ARTIFICIAL_INTELLIGENCE_FOUNDATIONS_MACHINE_LEARNING, type: 'video' },
+              { title: 'Content Filtering', duration: '2h', link: TRAINING_RESOURCES.PLATFORM_OPENAI_COM_DOCS_GUIDES_MODERATION, type: 'docs' },
               { title: 'Lab: Implementing Safety Controls', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Deployment Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/devops-foundations-containers', type: 'video' },
-              { title: 'CI/CD for AI Systems', duration: '2h', link: 'https://www.linkedin.com/learning/machine-learning-operations-mlops-fundamentals', type: 'video' },
+              { title: 'Deployment Patterns', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_DEVOPS_FOUNDATIONS_CONTAINERS, type: 'video' },
+              { title: 'CI/CD for AI Systems', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_MACHINE_LEARNING_OPERATIONS_MLOPS_FUNDAMENTALS, type: 'video' },
               { title: 'Lab: Containerizing Agents', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Monitoring & Alerting', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-prometheus', type: 'video' },
+              { title: 'Monitoring & Alerting', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_LEARNING_PROMETHEUS, type: 'video' },
               { title: 'Cost Optimization', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Production Monitoring Setup', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -720,32 +721,32 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Enterprise Architecture Fundamentals', duration: '2h', link: 'https://www.linkedin.com/learning/enterprise-architecture-foundations', type: 'video' },
-              { title: 'AI System Design Principles', duration: '2h', link: 'https://www.linkedin.com/learning/ai-for-architects', type: 'video' },
+              { title: 'Enterprise Architecture Fundamentals', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ENTERPRISE_ARCHITECTURE_FOUNDATIONS, type: 'video' },
+              { title: 'AI System Design Principles', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_AI_FOR_ARCHITECTS, type: 'video' },
               { title: 'Lab: Analyzing Existing Architectures', duration: '2h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'LLM Architecture Overview', duration: '2h', link: 'https://www.linkedin.com/learning/introduction-to-large-language-models', type: 'video' },
-              { title: 'Agentic System Patterns', duration: '2h', link: 'https://www.linkedin.com/learning/generative-ai-working-with-large-language-models', type: 'video' },
+              { title: 'LLM Architecture Overview', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_INTRODUCTION_TO_LARGE_LANGUAGE_MODELS, type: 'video' },
+              { title: 'Agentic System Patterns', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS, type: 'video' },
               { title: 'Lab: Pattern Identification Exercise', duration: '2h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Component Design & Integration', duration: '2h', link: 'https://www.linkedin.com/learning/software-architecture-foundations', type: 'video' },
-              { title: 'Technology Stack Selection', duration: '2h', link: 'https://www.linkedin.com/learning/software-architecture-foundations', type: 'video' },
+              { title: 'Component Design & Integration', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_FOUNDATIONS, type: 'video' },
+              { title: 'Technology Stack Selection', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_FOUNDATIONS, type: 'video' },
               { title: 'Lab: Technology Evaluation Matrix', duration: '2h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Requirements Analysis for AI', duration: '2h', link: 'https://www.linkedin.com/learning/software-design-from-requirements-to-release', type: 'video' },
-              { title: 'Use Case Mapping', duration: '2h', link: 'https://www.linkedin.com/learning/user-experience-for-web-design', type: 'video' },
+              { title: 'Requirements Analysis for AI', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_DESIGN_FROM_REQUIREMENTS_TO_RELEASE, type: 'video' },
+              { title: 'Use Case Mapping', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_USER_EXPERIENCE_FOR_WEB_DESIGN, type: 'video' },
               { title: 'Lab: Requirements Documentation', duration: '2h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -770,15 +771,15 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Vector Database Fundamentals', duration: '2.5h', link: 'https://www.linkedin.com/learning/introduction-to-databases', type: 'video' },
-              { title: 'Embeddings Architecture', duration: '2h', link: 'https://www.linkedin.com/learning/building-ai-powered-applications-with-langchain', type: 'video' },
+              { title: 'Vector Database Fundamentals', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_DATABASE_FOUNDATIONS_INTRO_TO_DATABASES, type: 'video' },
+              { title: 'Embeddings Architecture', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN, type: 'video' },
               { title: 'Lab: Vector DB Comparison Analysis', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Pinecone Architecture', duration: '2h', link: 'https://docs.pinecone.io/', type: 'docs' },
+              { title: 'Pinecone Architecture', duration: '2h', link: TRAINING_RESOURCES.DOCS_PINECONE_IO, type: 'docs' },
               { title: 'Weaviate & Milvus Comparison', duration: '2.5h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Designing Vector DB Solutions', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -786,7 +787,7 @@ const bootcampSchedule = {
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Index Optimization Strategies', duration: '2.5h', link: 'https://www.linkedin.com/learning/database-clinic-sqlite', type: 'video' },
+              { title: 'Index Optimization Strategies', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_INTRODUCTION_TO_SQLITE, type: 'video' },
               { title: 'Performance Tuning', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Performance Benchmarking', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -794,8 +795,8 @@ const bootcampSchedule = {
           {
             day: 'Thursday',
             modules: [
-              { title: 'Hybrid Search Architecture', duration: '2.5h', link: 'https://www.linkedin.com/learning/search-techniques-for-web-developers', type: 'video' },
-              { title: 'Data Pipeline Design', duration: '2h', link: 'https://www.linkedin.com/learning/data-pipeline-automation', type: 'video' },
+              { title: 'Hybrid Search Architecture', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SEARCH_TECHNIQUES_FOR_WEB_DEVELOPERS, type: 'video' },
+              { title: 'Data Pipeline Design', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_DATA_PIPELINE_AUTOMATION_WITH_GITHUB_ACTIONS_USING_R_A, type: 'video' },
               { title: 'Lab: End-to-End Data Architecture', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -820,32 +821,32 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Cloud Architecture Fundamentals', duration: '2.5h', link: 'https://www.linkedin.com/learning/aws-essential-training-for-architects', type: 'video' },
-              { title: 'Infrastructure as Code Principles', duration: '2h', link: 'https://www.linkedin.com/learning/learning-infrastructure-as-code', type: 'video' },
+              { title: 'Cloud Architecture Fundamentals', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_AWS_ESSENTIAL_TRAINING_FOR_ARCHITECTS, type: 'video' },
+              { title: 'Infrastructure as Code Principles', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_LEARNING_INFRASTRUCTURE_AS_CODE, type: 'video' },
               { title: 'Lab: Cloud Architecture Diagrams', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Terraform Fundamentals', duration: '2.5h', link: 'https://www.linkedin.com/learning/learning-terraform-15575129', type: 'video' },
-              { title: 'CloudFormation Basics', duration: '2h', link: 'https://www.linkedin.com/learning/amazon-web-services-deploying-and-provisioning', type: 'video' },
+              { title: 'Terraform Fundamentals', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_LEARNING_TERRAFORM_15575129, type: 'video' },
+              { title: 'CloudFormation Basics', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_AMAZON_WEB_SERVICES_DEPLOYING_AND_PROVISIONING, type: 'video' },
               { title: 'Lab: IaC for AI Workloads', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'AI Infrastructure Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/machine-learning-operations-mlops-fundamentals', type: 'video' },
-              { title: 'Compute & Storage for LLMs', duration: '2h', link: 'https://www.linkedin.com/learning/aws-essential-training-for-architects', type: 'video' },
+              { title: 'AI Infrastructure Patterns', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_MACHINE_LEARNING_OPERATIONS_MLOPS_FUNDAMENTALS, type: 'video' },
+              { title: 'Compute & Storage for LLMs', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_AWS_ESSENTIAL_TRAINING_FOR_ARCHITECTS, type: 'video' },
               { title: 'Lab: Designing AI Infrastructure', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Auto-scaling & Load Balancing', duration: '2.5h', link: 'https://www.linkedin.com/learning/amazon-web-services-high-availability', type: 'video' },
-              { title: 'Deployment Automation', duration: '2h', link: 'https://www.linkedin.com/learning/devops-foundations-continuous-delivery-continuous-integration', type: 'video' },
+              { title: 'Auto-scaling & Load Balancing', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_AMAZON_WEB_SERVICES_HIGH_AVAILABILITY, type: 'video' },
+              { title: 'Deployment Automation', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_DEVOPS_FOUNDATIONS_CONTINUOUS_DELIVERY_CONTINUOUS_INTE, type: 'video' },
               { title: 'Lab: Scalable Architecture Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -870,32 +871,32 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'API Architecture & Design', duration: '2.5h', link: 'https://www.linkedin.com/learning/api-development-and-management', type: 'video' },
-              { title: 'Microservices for AI', duration: '2h', link: 'https://www.linkedin.com/learning/microservices-foundations', type: 'video' },
+              { title: 'API Architecture & Design', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_API_DEVELOPMENT_AND_MANAGEMENT, type: 'video' },
+              { title: 'Microservices for AI', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_MICROSERVICES_FOUNDATIONS, type: 'video' },
               { title: 'Lab: API Design Exercise', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Event-Driven Architectures', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-architecture-patterns-for-developers', type: 'video' },
-              { title: 'Message Queues & Streams', duration: '2h', link: 'https://www.linkedin.com/learning/learning-apache-kafka', type: 'video' },
+              { title: 'Event-Driven Architectures', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_PATTERNS_FOR_DEVELOPERS, type: 'video' },
+              { title: 'Message Queues & Streams', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_LEARNING_APACHE_KAFKA, type: 'video' },
               { title: 'Lab: Event-Driven AI Systems', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Enterprise Integration Patterns', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-architecture-patterns-for-developers', type: 'video' },
-              { title: 'Legacy System Integration', duration: '2h', link: 'https://www.linkedin.com/learning/enterprise-architecture-foundations', type: 'video' },
+              { title: 'Enterprise Integration Patterns', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_PATTERNS_FOR_DEVELOPERS, type: 'video' },
+              { title: 'Legacy System Integration', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ENTERPRISE_ARCHITECTURE_FOUNDATIONS, type: 'video' },
               { title: 'Lab: Integration Strategy Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Security Architecture', duration: '2.5h', link: 'https://www.linkedin.com/learning/cybersecurity-architecture-standards-and-frameworks', type: 'video' },
-              { title: 'Authentication & Authorization', duration: '2h', link: 'https://www.linkedin.com/learning/programming-foundations-apis-and-web-services', type: 'video' },
+              { title: 'Security Architecture', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_CYBERSECURITY_ARCHITECTURE_STANDARDS_AND_FRAMEWORKS, type: 'video' },
+              { title: 'Authentication & Authorization', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_PROGRAMMING_FOUNDATIONS_APIS_AND_WEB_SERVICES, type: 'video' },
               { title: 'Lab: Secure AI System Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -920,7 +921,7 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'AI Cost Modeling', duration: '2.5h', link: 'https://www.linkedin.com/learning/cloud-architecture-cost-optimization', type: 'video' },
+              { title: 'AI Cost Modeling', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_CLOUD_ARCHITECTURE_COST_OPTIMIZATION, type: 'video' },
               { title: 'Token Economics', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Cost Estimation Models', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -928,15 +929,15 @@ const bootcampSchedule = {
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Infrastructure Cost Optimization', duration: '2.5h', link: 'https://www.linkedin.com/learning/aws-cost-management', type: 'video' },
-              { title: 'Caching Strategies', duration: '2h', link: 'https://www.linkedin.com/learning/software-architecture-patterns-for-developers', type: 'video' },
+              { title: 'Infrastructure Cost Optimization', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_AWS_COST_MANAGEMENT, type: 'video' },
+              { title: 'Caching Strategies', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_PATTERNS_FOR_DEVELOPERS, type: 'video' },
               { title: 'Lab: Cost Optimization Strategy', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Risk Assessment Frameworks', duration: '2.5h', link: 'https://www.linkedin.com/learning/enterprise-risk-management', type: 'video' },
+              { title: 'Risk Assessment Frameworks', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ENTERPRISE_RISK_MANAGEMENT, type: 'video' },
               { title: 'AI-Specific Risks', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Risk Matrix Development', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
@@ -944,8 +945,8 @@ const bootcampSchedule = {
           {
             day: 'Thursday',
             modules: [
-              { title: 'Ethical AI & Governance', duration: '2.5h', link: 'https://www.linkedin.com/learning/artificial-intelligence-ethics-in-practice', type: 'video' },
-              { title: 'Compliance & Regulations', duration: '2h', link: 'https://www.linkedin.com/learning/data-privacy-and-security', type: 'video' },
+              { title: 'Ethical AI & Governance', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_ARTIFICIAL_INTELLIGENCE_ETHICS_IN_PRACTICE, type: 'video' },
+              { title: 'Compliance & Regulations', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_DATA_PRIVACY_AND_SECURITY, type: 'video' },
               { title: 'Lab: Governance Framework Design', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
@@ -970,31 +971,31 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Technical Communication', duration: '2.5h', link: 'https://www.linkedin.com/learning/communicating-about-architecture', type: 'video' },
-              { title: 'Stakeholder Analysis', duration: '2h', link: 'https://www.linkedin.com/learning/project-management-foundations-stakeholders', type: 'video' },
+              { title: 'Technical Communication', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_COMMUNICATING_ABOUT_ARCHITECTURE, type: 'video' },
+              { title: 'Stakeholder Analysis', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_PROJECT_MANAGEMENT_FOUNDATIONS_STAKEHOLDERS, type: 'video' },
               { title: 'Lab: Stakeholder Mapping', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Architecture Documentation', duration: '2.5h', link: 'https://www.linkedin.com/learning/software-architecture-documenting-architecture', type: 'video' },
-              { title: 'Diagramming Best Practices', duration: '2h', link: 'https://www.linkedin.com/learning/learning-uml', type: 'video' },
+              { title: 'Architecture Documentation', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_DOCUMENTING_ARCHITECTURE, type: 'video' },
+              { title: 'Diagramming Best Practices', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_LEARNING_UML, type: 'video' },
               { title: 'Lab: Documentation Creation', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'ROI & Business Case Development', duration: '2.5h', link: 'https://www.linkedin.com/learning/building-a-business-case', type: 'video' },
-              { title: 'Value Proposition Design', duration: '2h', link: 'https://www.linkedin.com/learning/business-analysis-foundations', type: 'video' },
+              { title: 'ROI & Business Case Development', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUILDING_A_BUSINESS_CASE, type: 'video' },
+              { title: 'Value Proposition Design', duration: '2h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_BUSINESS_ANALYSIS_FOUNDATIONS, type: 'video' },
               { title: 'Lab: Business Case Workshop', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Vendor Evaluation & Selection', duration: '2.5h', link: 'https://www.linkedin.com/learning/vendor-management-foundations', type: 'video' },
+              { title: 'Vendor Evaluation & Selection', duration: '2.5h', link: TRAINING_RESOURCES.WWW_LINKEDIN_COM_LEARNING_VENDOR_MANAGEMENT_FOUNDATIONS, type: 'video' },
               { title: 'Technology Radar', duration: '2h', link: 'internal-docs', type: 'docs' },
               { title: 'Lab: Technology Selection Matrix', duration: '2.5h', link: 'internal-lab', type: 'lab' }
             ]
