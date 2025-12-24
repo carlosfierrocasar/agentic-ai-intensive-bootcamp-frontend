@@ -373,24 +373,24 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Introduction to SQLite', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_PYTHON_ESSENTIAL_TRAINING_18764650", type: 'video' },
+              { title: 'Python Essential Training', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_PYTHON_ESSENTIAL_TRAINING_18764650", type: 'video' },
               { title: 'Introduction to Large Language Models', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_INTRODUCTION_TO_LARGE_LANGUAGE_MODELS", type: 'video' },
-              { title: 'Hands-on: Python Environment Setup', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_LEARNING_PYTHON_25309312", type: 'lab' }
+              { title: 'Learning Python', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_LEARNING_PYTHON_25309312", type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Async Programming in Python', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_ASYNCHRONOUS_PYTHON_BOOST_PERFORMANCE_AND_EFFICIENCY_F", type: 'video' },
-              { title: 'Working with APIs in Python', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_PYTHON_WORKING_WITH_REST_AND_WEB_DATA", type: 'video' },
+              { title: 'Asynchronous Python: Boost Performance and Efficiency for Real-World Apps', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_ASYNCHRONOUS_PYTHON_BOOST_PERFORMANCE_AND_EFFICIENCY_F", type: 'video' },
+              { title: 'Python: Working with REST and Web Data', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_PYTHON_WORKING_WITH_REST_AND_WEB_DATA", type: 'video' },
               { title: 'Lab: Building Your First API Client', duration: '2h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Understanding Transformers & Attention', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AI_FUNDAMENTALS_FOR_DATA_PROFESSIONALS", type: 'video' },
-              { title: 'Token Economics & Context Windows', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS", type: 'video' },
+              { title: 'AI Fundamentals for Data Professionals', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AI_FUNDAMENTALS_FOR_DATA_PROFESSIONALS", type: 'video' },
+              { title: 'Generative AI: Working with Large Language Models', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS", type: 'video' },
               { title: 'Lab: Token Counting & Cost Estimation', duration: '2h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -398,7 +398,7 @@ const bootcampSchedule = {
             day: 'Thursday',
             modules: [
               { title: 'Introduction to Prompt Engineering', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_INTRODUCTION_TO_PROMPT_ENGINEERING_FOR_GENERATIVE_AI_2", type: 'video' },
-              { title: 'Model Selection & Comparison', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS", type: 'video' },
+              { title: 'Data Modeling and Model Evaluation', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_MODELING_AND_MODEL_EVALUATION_METRICS", type: 'video' },
               { title: 'Lab: Testing Different LLM Models', duration: '2h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -424,7 +424,7 @@ const bootcampSchedule = {
             day: 'Monday',
             modules: [
               { title: 'OpenAI API Deep Dive', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_OPENAI_API_INTRODUCTION", type: 'video' },
-              { title: 'OpenAI API: Introduction', duration: '2h', resourceKey: "DOCS_ANTHROPIC_COM_EN_DOCS_QUICKSTART", type: 'docs' },
+              { title: 'OpenAI API: Introduction', duration: '2h', resourceKey: "DOCS_ANTHROPIC_COM_EN_DOCS", type: 'video' },
               { title: 'Lab: API Authentication & Basic Calls', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -439,7 +439,7 @@ const bootcampSchedule = {
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Few-Shot Learning Techniques', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS", type: 'video' },
+              { title: 'Few-Shot Learning Techniques', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_FEW_SHOT_TECHNIQUES", type: 'video' },
               { title: 'Multi-Step Prompt Structuring', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_ADVANCED_PROMPT_ENGINEERING_TECHNIQUES", type: 'video' },
               { title: 'Lab: Multi-Turn Conversations', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -448,7 +448,7 @@ const bootcampSchedule = {
             day: 'Thursday',
             modules: [
               { title: 'Function Calling & Tool Use', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_OPENAI_API_INTRODUCTION", type: 'video' },
-              { title: 'Streaming Responses', duration: '2h', resourceKey: "DOCS_ANTHROPIC_COM_EN_DOCS_BUILD_WITH_CLAUDE_STREAMING", type: 'docs' },
+              { title: 'Streaming Responses', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_STREAMING_RESPONSES", type: 'docs' },
               { title: 'Lab: Building Tools for LLMs', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -481,7 +481,7 @@ const bootcampSchedule = {
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Chains and Sequences', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN", type: 'video' },
+              { title: 'Chains and Sequences', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_LANGCHAIN_SEQUENCES", type: 'video' },
               { title: 'Memory Systems', duration: '2h', resourceKey: "PYTHON_LANGCHAIN_COM_DOCS_MODULES_MEMORY", type: 'docs' },
               { title: 'Lab: Building Stateful Conversations', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -489,7 +489,7 @@ const bootcampSchedule = {
           {
             day: 'Wednesday',
             modules: [
-              { title: 'LangChain Agents Architecture', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_AGENTS_WITH_LANGCHAIN", type: 'video' },
+              { title: 'LangChain Agents Architecture', duration: '2.5h', resourceKey: "WWWWW_LINKEDIN_COM_LEARNING_AGENTS_ARCHITECTURE_LANGCHAIN", type: 'docs' },
               { title: 'Tool Integration Patterns', duration: '2h', resourceKey: "PYTHON_LANGCHAIN_COM_DOCS_MODULES_AGENTS", type: 'docs' },
               { title: 'Lab: Creating Custom Tools', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -498,7 +498,7 @@ const bootcampSchedule = {
             day: 'Thursday',
             modules: [
               { title: 'Introduction to LlamaIndex', duration: '2h', resourceKey: "DOCS_LLAMAINDEX_AI_EN_STABLE", type: 'docs' },
-              { title: 'Data Connectors & Loaders', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN", type: 'video' },
+              { title: 'Data Connectors & Loaders', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_DATA_COLLECTION_AND_LOADERS", type: 'docs' },
               { title: 'Lab: Building Data Ingestion Pipelines', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -523,8 +523,8 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Embeddings & Vector Representations', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN", type: 'video' },
-              { title: 'Vector Databases Overview', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS", type: 'video' },
+              { title: 'Embeddings & Vector Representations', duration: '2.5h', resourceKey: "WWW_VECTOR_EMBEDINGS", type: 'docs' },
+              { title: 'Vector Databases Overview', duration: '2h', resourceKey: "WWW_VECTOR_DATABASES", type: 'docs' },
               { title: 'Lab: Creating and Storing Embeddings', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -532,14 +532,14 @@ const bootcampSchedule = {
             day: 'Tuesday',
             modules: [
               { title: 'RAG Architecture & Patterns', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_HANDS_ON_AI_INTRODUCTION_TO_RETRIEVAL_AUGMENTED_GENERA", type: 'video' },
-              { title: 'Hands-on AI: Introduction to Retrieval-Augmented Generation (RAG)', duration: '2h', resourceKey: "PYTHON_LANGCHAIN_COM_DOCS_MODULES_DATA_CONNECTION", type: 'docs' },
+              { title: 'Chunking Strategies', duration: '2h', resourceKey: "WLANGFLOW_CHUNKING_STRATEGIES", type: 'docs' },
               { title: 'Lab: Building Your First RAG System', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Advanced Retrieval Strategies', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_HANDS_ON_AI_INTRODUCTION_TO_RETRIEVAL_AUGMENTED_GENERA", type: 'video' },
+              { title: 'Advanced Retrieval Strategies', duration: '2.5h', resourceKey: "LONGHAIN_ADVANCED_RETRIEVAL_ESTRATEGY", type: 'video' },
               { title: 'Hybrid Search (Vector + Keyword)', duration: '2h', resourceKey: "INTERNAL_DOCS", type: 'docs' },
               { title: 'Lab: Optimizing Retrieval Quality', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -573,7 +573,7 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Agentic Workflow Design', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_AGENTS_WITH_LANGCHAIN", type: 'video' },
+              { title: 'Agentic Workflow Design', duration: '2.5h', resourceKey: "LONGHAIN_AGENTIC_WORKFLOW_DESIGN", type: 'video' },
               { title: 'Multi-Agent Architectures', duration: '2h', resourceKey: "PYTHON_LANGCHAIN_COM_DOCS_USE_CASES_MULTI_AGENT", type: 'docs' },
               { title: 'Lab: Designing Agent Workflows', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -589,7 +589,7 @@ const bootcampSchedule = {
           {
             day: 'Wednesday',
             modules: [
-              { title: 'State Management in Agents', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_AGENTS_WITH_LANGCHAIN", type: 'video' },
+              { title: 'State Management in Agents', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_STATE_MANAGEMENT", type: 'docs' },
               { title: 'Error Handling & Recovery', duration: '2h', resourceKey: "INTERNAL_DOCS", type: 'docs' },
               { title: 'Lab: Robust Agent Systems', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -597,7 +597,7 @@ const bootcampSchedule = {
           {
             day: 'Thursday',
             modules: [
-              { title: 'Agent Observability & Monitoring', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_MACHINE_LEARNING_OPERATIONS_MLOPS_FUNDAMENTALS", type: 'video' },
+              { title: 'Agent Observability & Monitoring', duration: '2.5h', resourceKey: "LONGHAIN_OBSERVABILITY", type: 'docs' },
               { title: 'Performance Optimization', duration: '2h', resourceKey: "INTERNAL_DOCS", type: 'docs' },
               { title: 'Lab: Instrumenting Agents', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -640,14 +640,14 @@ const bootcampSchedule = {
             day: 'Wednesday',
             modules: [
               { title: 'Deployment Patterns', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_DEVOPS_FOUNDATIONS_CONTAINERS", type: 'video' },
-              { title: 'CI/CD for AI Systems', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_MACHINE_LEARNING_OPERATIONS_MLOPS_FUNDAMENTALS", type: 'video' },
+              { title: 'CI/CD for AI Systems', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_CI_CD", type: 'video' },
               { title: 'Lab: Containerizing Agents', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
           {
             day: 'Thursday',
             modules: [
-              { title: 'Monitoring & Alerting', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_LEARNING_PROMETHEUS", type: 'video' },
+              { title: 'Monitoring & Alerting', duration: '2.5h', resourceKey: "WWW_LEARNING_PROMETHEUS", type: 'docs' },
               { title: 'Cost Optimization', duration: '2h', resourceKey: "INTERNAL_DOCS", type: 'docs' },
               { title: 'Lab: Production Monitoring Setup', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -722,7 +722,7 @@ const bootcampSchedule = {
             day: 'Monday',
             modules: [
               { title: 'Enterprise Architecture Fundamentals', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_ENTERPRISE_ARCHITECTURE_FOUNDATIONS", type: 'video' },
-              { title: 'AI System Design Principles', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AI_FOR_ARCHITECTS", type: 'video' },
+              { title: 'AI System Design Principles', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AI_ARCHITECTURE_FOUNDATIONS", type: 'video' },
               { title: 'Lab: Analyzing Existing Architectures', duration: '2h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -772,7 +772,7 @@ const bootcampSchedule = {
             day: 'Monday',
             modules: [
               { title: 'Vector Database Fundamentals', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_DATABASE_FOUNDATIONS_INTRO_TO_DATABASES", type: 'video' },
-              { title: 'Embeddings Architecture', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_BUILDING_AI_POWERED_APPLICATIONS_WITH_LANGCHAIN", type: 'video' },
+              { title: 'Embeddings Architecture', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_EMBEDDINGS", type: 'video' },
               { title: 'Lab: Vector DB Comparison Analysis', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
@@ -830,14 +830,14 @@ const bootcampSchedule = {
             day: 'Tuesday',
             modules: [
               { title: 'Terraform Fundamentals', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_LEARNING_TERRAFORM_15575129", type: 'video' },
-              { title: 'CloudFormation Basics', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AMAZON_WEB_SERVICES_DEPLOYING_AND_PROVISIONING", type: 'video' },
+              { title: 'CloudFormation Basics', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AMAZON_WEB_SERVICES_CLOUDFORMATION", type: 'video' },
               { title: 'Lab: IaC for AI Workloads', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
           {
             day: 'Wednesday',
             modules: [
-              { title: 'AI Infrastructure Patterns', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_MACHINE_LEARNING_OPERATIONS_MLOPS_FUNDAMENTALS", type: 'video' },
+              { title: 'AI Infrastructure Patterns', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_MLOPS_ESSENTIALS", type: 'video' },
               { title: 'Compute & Storage for LLMs', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AWS_ESSENTIAL_TRAINING_FOR_ARCHITECTS", type: 'video' },
               { title: 'Lab: Designing AI Infrastructure', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -871,7 +871,7 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'API Architecture & Design', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_API_DEVELOPMENT_AND_MANAGEMENT", type: 'video' },
+              { title: 'API Architecture & Design', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_API_DEVELOPMENT", type: 'video' },
               { title: 'Microservices for AI', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_MICROSERVICES_FOUNDATIONS", type: 'video' },
               { title: 'Lab: API Design Exercise', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -895,7 +895,7 @@ const bootcampSchedule = {
           {
             day: 'Thursday',
             modules: [
-              { title: 'Security Architecture', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_CYBERSECURITY_ARCHITECTURE_STANDARDS_AND_FRAMEWORKS", type: 'video' },
+              { title: 'Security Architecture', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_CYBERSECURITY_ARCHITECTURE", type: 'video' },
               { title: 'Authentication & Authorization', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_PROGRAMMING_FOUNDATIONS_APIS_AND_WEB_SERVICES", type: 'video' },
               { title: 'Lab: Secure AI System Design', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -929,7 +929,7 @@ const bootcampSchedule = {
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Infrastructure Cost Optimization', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AWS_COST_MANAGEMENT", type: 'video' },
+              { title: 'Infrastructure Cost Optimization', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_AWS_COST_OPTIMIZATION", type: 'video' },
               { title: 'Caching Strategies', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_PATTERNS_FOR_DEVELOPERS", type: 'video' },
               { title: 'Lab: Cost Optimization Strategy', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -945,7 +945,7 @@ const bootcampSchedule = {
           {
             day: 'Thursday',
             modules: [
-              { title: 'Ethical AI & Governance', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_ARTIFICIAL_INTELLIGENCE_ETHICS_IN_PRACTICE", type: 'video' },
+              { title: 'Ethical AI & Governance', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_ARTIFICIAL_INTELLIGENCE_ETHICS", type: 'video' },
               { title: 'Compliance & Regulations', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_DATA_PRIVACY_AND_SECURITY", type: 'video' },
               { title: 'Lab: Governance Framework Design', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -972,14 +972,14 @@ const bootcampSchedule = {
             day: 'Monday',
             modules: [
               { title: 'Technical Communication', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_COMMUNICATING_ABOUT_ARCHITECTURE", type: 'video' },
-              { title: 'Stakeholder Analysis', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_PROJECT_MANAGEMENT_FOUNDATIONS_STAKEHOLDERS", type: 'video' },
+              { title: 'Stakeholder Analysis', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_PROJECT_MANAGEMENT_PROJECT_STAKEHOLDERS", type: 'video' },
               { title: 'Lab: Stakeholder Mapping', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
           },
           {
             day: 'Tuesday',
             modules: [
-              { title: 'Architecture Documentation', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_SOFTWARE_ARCHITECTURE_DOCUMENTING_ARCHITECTURE", type: 'video' },
+              { title: 'Architecture Documentation', duration: '2.5h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_TECHNICAL_DOCUMENTING_GITHUB", type: 'video' },
               { title: 'Diagramming Best Practices', duration: '2h', resourceKey: "WWW_LINKEDIN_COM_LEARNING_LEARNING_UML", type: 'video' },
               { title: 'Lab: Documentation Creation', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
