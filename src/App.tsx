@@ -539,7 +539,7 @@ const bootcampSchedule = {
           {
             day: 'Wednesday',
             modules: [
-              { title: 'Advanced Retrieval Strategies', duration: '2.5h', resourceKey: "LONGHAIN_ADVANCED_RETRIEVAL_ESTRATEGY", type: 'video' },
+              { title: 'Advanced Retrieval Strategies', duration: '2.5h', resourceKey: "LONGHAIN_ADVANCED_RETRIEVAL_ESTRATEGY", type: 'docs' },
               { title: 'Hybrid Search (Vector + Keyword)', duration: '2h', resourceKey: "INTERNAL_DOCS", type: 'docs' },
               { title: 'Lab: Optimizing Retrieval Quality', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]
@@ -573,7 +573,7 @@ const bootcampSchedule = {
           {
             day: 'Monday',
             modules: [
-              { title: 'Agentic Workflow Design', duration: '2.5h', resourceKey: "LONGHAIN_AGENTIC_WORKFLOW_DESIGN", type: 'video' },
+              { title: 'Agentic Workflow Design', duration: '2.5h', resourceKey: "LONGHAIN_AGENTIC_WORKFLOW_DESIGN", type: 'docs' },
               { title: 'Multi-Agent Architectures', duration: '2h', resourceKey: "PYTHON_LANGCHAIN_COM_DOCS_USE_CASES_MULTI_AGENT", type: 'docs' },
               { title: 'Lab: Designing Agent Workflows', duration: '2.5h', resourceKey: "INTERNAL_LAB", type: 'lab' }
             ]

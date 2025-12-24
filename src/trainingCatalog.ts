@@ -52,7 +52,7 @@ export type TrainingResource = {
     WWW_LINKEDIN_COM_LEARNING_DEVOPS_FOUNDATIONS_CONTAINERS: { url: "https://www.linkedin.com/learning/devops-foundations-containers" },
     WWW_LINKEDIN_COM_LEARNING_DEVOPS_FOUNDATIONS_CONTINUOUS_DELIVERY_CONTINUOUS_INTE: { url: "https://www.linkedin.com/learning/devops-foundations-continuous-delivery-continuous-integration" },
     WWW_LINKEDIN_COM_LEARNING_ENTERPRISE_ARCHITECTURE_FOUNDATIONS: { url: "https://www.linkedin.com/learning/enterprise-architecture-foundations" },
-    WWW_LINKEDIN_COM_LEARNING_ENTERPRISE_RISK_MANAGEMENT: { url: "linkedin.com/learning/enterprise-security-risk-management-for-cybersecurity-managers-from-assessment-to-governance-with-iso-iec-2700/why-enterprise-risk-management-erm-matters-for-security-leaders?u=2202746" },
+    WWW_LINKEDIN_COM_LEARNING_ENTERPRISE_RISK_MANAGEMENT: { url: "https://www.linkedin.com/learning/enterprise-security-risk-management-for-cybersecurity-managers-from-assessment-to-governance-with-iso-iec-2700/why-enterprise-risk-management-erm-matters-for-security-leaders?u=2202746" },
     WWW_LINKEDIN_COM_STATE_MANAGEMENT: { url: "https://www.linkedin.com/posts/bijit-ghosh-48281a78_ai-agents-state-management-state-graph-activity-7345252834507980802-LqXp" },
     WWW_LINKEDIN_COM_LEARNING_GENERATIVE_AI_WORKING_WITH_LARGE_LANGUAGE_MODELS: { url: "https://www.linkedin.com/learning/generative-ai-working-with-large-language-models" },
     WWW_LINKEDIN_COM_LEARNING_HANDS_ON_AI_INTRODUCTION_TO_RETRIEVAL_AUGMENTED_GENERA: { url: "https://www.linkedin.com/learning/hands-on-ai-introduction-to-retrieval-augmented-generation-rag" },
