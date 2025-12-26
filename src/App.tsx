@@ -406,10 +406,44 @@ function PlacementTab() {
       {placementResult && (
         <section className="card">
           <h3 className="card-title">Your Results</h3>
-          <p className="muted">
-            Score: <strong>{placementResult.percentage}%</strong>
-          </p>
-          <p>
+          <div style={{ marginTop: 8 }}>
+            <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>
+              Proficiency Score
+            </div>
+
+            <div
+              style={{
+                width: "100%",
+                height: 10,
+                backgroundColor: "#e5e7eb",
+                borderRadius: 999,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${placementResult.percentage}%`,
+                  height: "100%",
+                  backgroundColor: "#1f2937",
+                  borderRadius: 999,
+                  transition: "width 0.35s ease",
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                textAlign: "right",
+                color: "#111",
+                fontWeight: 600,
+              }}
+            >
+              {placementResult.percentage}%
+            </div>
+          </div>
+<p>
             Recommended starting week: <strong>Week {placementResult.startWeek}</strong>
           </p>
           <p className="muted">{placementResult.recommendation}</p>
