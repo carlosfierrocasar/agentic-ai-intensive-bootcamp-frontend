@@ -1426,10 +1426,38 @@ const DEFAULT_FORM: NewLearnerForm = {
   start_week: 1,
 };
 
+function UserIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M20 21a8 8 0 0 0-16 0"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ProgressTab() {
   const [learners, setLearners] = useState<Learner[]>([]);
   const [form, setForm] = useState<NewLearnerForm>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   async function loadData() {
     try {
@@ -1454,18 +1482,43 @@ function ProgressTab() {
       return;
     }
 
+    const tempId = -Date.now();
+    const tempLearner: Learner = {
+      id: tempId,
+      name: form.name.trim(),
+      source_role: form.source_role,
+      target_role: form.target_role,
+      start_week: Number(form.start_week),
+      // opcional: algunos backends pueden omitir estos; los dejamos seguros
+      overall_progress_pct: 0,
+      overall_modules_total: 0,
+      overall_modules_completed: 0,
+      progress: [],
+    };
+
     try {
+      setIsAdding(true);
+
+      // Optimistic UI: aparece de inmediato en la lista
+      setLearners((prev) => [...prev, tempLearner]);
+
       const created = await createLearner({
-        name: form.name.trim(),
-        source_role: form.source_role,
-        target_role: form.target_role,
-        start_week: Number(form.start_week),
+        name: tempLearner.name,
+        source_role: tempLearner.source_role,
+        target_role: tempLearner.target_role,
+        start_week: tempLearner.start_week,
       });
-      setLearners((prev) => [...prev, created]);
+
+      // Reemplaza el temporal por el real
+      setLearners((prev) => prev.map((l) => (l.id === tempId ? created : l)));
       setForm(DEFAULT_FORM);
     } catch (err) {
       console.error(err);
+      // Quita el temporal si falló
+      setLearners((prev) => prev.filter((l) => l.id !== tempId));
       alert(`Error creating learner: ${String(err)}`);
+    } finally {
+      setIsAdding(false);
     }
   }
 
@@ -1609,8 +1662,9 @@ function ProgressTab() {
             type="button"
             className="btn-primary btn-full"
             onClick={handleAddLearner}
+            disabled={isAdding}
           >
-            + Add Learner
+            {isAdding ? "Adding..." : "+ Add Learner"}
           </button>
         </form>
       </section>
@@ -1642,11 +1696,8 @@ function ProgressTab() {
               <article className="learner-card" key={learner.id}>
                 <header className="learner-card-header">
                   <div className="learner-meta">
-                    <div className="avatar-circle">
-                      {/* icono simple "person" usando inicial */}
-                      <span className="avatar-initial">
-                        {learner.name.charAt(0).toUpperCase() || "A"}
-                      </span>
+                    <div className="avatar-circle" aria-hidden="true">
+                      <UserIcon size={18} />
                     </div>
                     <div className="learner-meta-text">
                       <div className="learner-name">{learner.name}</div>
