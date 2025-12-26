@@ -1458,6 +1458,12 @@ function ProgressTab() {
   const [form, setForm] = useState<NewLearnerForm>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [expandedById, setExpandedById] = useState<Record<number, boolean>>({});
+
+  function toggleExpanded(learnerId: number) {
+    setExpandedById((prev) => ({ ...prev, [learnerId]: !prev[learnerId] }));
+  }
+
 
   async function loadData() {
     try {
@@ -1483,6 +1489,7 @@ function ProgressTab() {
     }
 
     const tempId = -Date.now();
+    setExpandedById((prev) => ({ ...prev, [tempId]: true }));
     const tempLearner: Learner = {
       id: tempId,
       name: form.name.trim(),
@@ -1511,11 +1518,22 @@ function ProgressTab() {
 
       // Reemplaza el temporal por el real
       setLearners((prev) => prev.map((l) => (l.id === tempId ? created : l)));
+      setExpandedById((prev) => {
+        const next = { ...prev };
+        delete next[tempId];
+        next[created.id] = true;
+        return next;
+      });
       setForm(DEFAULT_FORM);
     } catch (err) {
       console.error(err);
       // Quita el temporal si falló
       setLearners((prev) => prev.filter((l) => l.id !== tempId));
+      setExpandedById((prev) => {
+        const next = { ...prev };
+        delete next[tempId];
+        return next;
+      });
       alert(`Error creating learner: ${String(err)}`);
     } finally {
       setIsAdding(false);
@@ -1527,6 +1545,11 @@ function ProgressTab() {
     try {
       await deleteLearner(learnerId);
       setLearners((prev) => prev.filter((l) => l.id !== learnerId));
+      setExpandedById((prev) => {
+        const next = { ...prev };
+        delete next[learnerId];
+        return next;
+      });
     } catch (err) {
       console.error(err);
       alert(`Error deleting learner: ${String(err)}`);
@@ -1691,6 +1714,8 @@ function ProgressTab() {
             const overall = Math.round(learner.overall_progress_pct || 0);
             const totalModules = learner.overall_modules_total || 34;
             const completedModules = learner.overall_modules_completed || 0;
+            const isExpanded = expandedById[learner.id] ?? false;
+
 
             return (
               <article className="learner-card" key={learner.id}>
@@ -1718,6 +1743,14 @@ function ProgressTab() {
                     </div>
                     <button
                       type="button"
+                      className="link-button"
+                      onClick={() => toggleExpanded(learner.id)}
+                    >
+                      {isExpanded ? "Collapse details" : "Expand details"}
+                    </button>
+
+                    <button
+                      type="button"
                       className="link-button link-button-danger"
                       onClick={() => handleDelete(learner.id)}
                     >
@@ -1726,6 +1759,8 @@ function ProgressTab() {
                   </div>
                 </header>
 
+                {isExpanded && (
+                  <>
                 <div className="progress-bar-row">
                   <div className="progress-bar-track">
                     <div
@@ -1811,6 +1846,8 @@ function ProgressTab() {
                     );
                   })}
                 </div>
+                  </>
+                )}
               </article>
             );
           })}
