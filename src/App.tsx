@@ -222,18 +222,26 @@ function OverviewTab() {
 type QuestionProps = {
   label: string;
   name: string;
-  options: string[];
+  options: Array<{ value: number; label: string }>;
+  selectedValue?: number;
+  onSelect: (value: number) => void;
 };
 
-function Question({ label, name, options }: QuestionProps) {
+function Question({ label, name, options, selectedValue, onSelect }: QuestionProps) {
   return (
     <div className="question-block">
       <p className="question-label">{label}</p>
       <div className="question-options">
         {options.map((opt) => (
-          <label key={opt} className="radio-option">
-            <input type="radio" name={name} />
-            <span>{opt}</span>
+          <label key={opt.value} className="radio-option">
+            <input
+              type="radio"
+              name={name}
+              value={opt.value}
+              checked={selectedValue === opt.value}
+              onChange={() => onSelect(opt.value)}
+            />
+            <span>{opt.label}</span>
           </label>
         ))}
       </div>
@@ -241,97 +249,176 @@ function Question({ label, name, options }: QuestionProps) {
   );
 }
 
+
 function PlacementTab() {
+  const placementTest = [
+    {
+      id: 1,
+      question: "How comfortable are you with Python programming?",
+      options: [
+        { value: 0, label: "No experience" },
+        { value: 1, label: "Basic (variables, loops)" },
+        { value: 2, label: "Intermediate (functions, modules)" },
+        { value: 3, label: "Advanced (classes, async)" }
+      ],
+      weight: 2
+    },
+    {
+      id: 2,
+      question: "How familiar are you with SQL and databases?",
+      options: [
+        { value: 0, label: "No experience" },
+        { value: 1, label: "Basic queries (SELECT, WHERE)" },
+        { value: 2, label: "Joins, aggregations, indexes" },
+        { value: 3, label: "Advanced (optimization, complex queries)" }
+      ],
+      weight: 2
+    },
+    {
+      id: 3,
+      question: "How much experience do you have with API integration?",
+      options: [
+        { value: 0, label: "No experience" },
+        { value: 1, label: "Used APIs as a consumer" },
+        { value: 2, label: "Built simple APIs" },
+        { value: 3, label: "Designed and maintained production APIs" }
+      ],
+      weight: 2
+    },
+    {
+      id: 4,
+      question: "How comfortable are you with web development (frontend/backend)?",
+      options: [
+        { value: 0, label: "No experience" },
+        { value: 1, label: "Basic HTML/CSS" },
+        { value: 2, label: "Built simple web apps" },
+        { value: 3, label: "Built full-stack applications" }
+      ],
+      weight: 2
+    },
+    {
+      id: 5,
+      question: "Have you worked with AI/LLM concepts before?",
+      options: [
+        { value: 0, label: "No" },
+        { value: 1, label: "Heard of LLMs, basic understanding" },
+        { value: 2, label: "Used ChatGPT/Claude regularly" },
+        { value: 3, label: "Built LLM apps (RAG, agents, etc.)" }
+      ],
+      weight: 3
+    },
+    {
+      id: 6,
+      question: "How much time can you realistically dedicate per week?",
+      options: [
+        { value: 0, label: "1-2 hours" },
+        { value: 1, label: "3-5 hours" },
+        { value: 2, label: "6-10 hours" },
+        { value: 3, label: "10+ hours" }
+      ],
+      weight: 3
+    }
+  ] as const;
+
+  const [placementAnswers, setPlacementAnswers] = useState<Record<number, number>>({});
+  const [placementResult, setPlacementResult] = useState<{
+    startWeek: number;
+    recommendation: string;
+    percentage: number;
+  } | null>(null);
+
+  const calculatePlacement = () => {
+    let totalScore = 0;
+    let maxScore = 0;
+
+    placementTest.forEach((q) => {
+      const answer = placementAnswers[q.id] ?? 0;
+      totalScore += answer * q.weight;
+      maxScore += 3 * q.weight;
+    });
+
+    const percentage = Math.round((totalScore / maxScore) * 100);
+    let startWeek = 1;
+    let recommendation = "";
+
+    if (percentage >= 75) {
+      startWeek = 5;
+      recommendation =
+        "You have strong fundamentals! Start with Week 5 (Advanced Agentic Workflows).";
+    } else if (percentage >= 55) {
+      startWeek = 4;
+      recommendation =
+        "You have good foundations. Start with Week 4 (Vector Databases & Advanced Retrieval).";
+    } else if (percentage >= 35) {
+      startWeek = 3;
+      recommendation =
+        "You have some experience. Start with Week 3 (Embeddings & Basic RAG).";
+    } else if (percentage >= 20) {
+      startWeek = 2;
+      recommendation =
+        "You are getting started. Start with Week 2 (Data Connectors & Chunking).";
+    } else {
+      startWeek = 1;
+      recommendation =
+        "Start from Week 1 to build your foundations: Intro to Agents + Core Tools.";
+    }
+
+    setPlacementResult({ startWeek, recommendation, percentage });
+  };
+
   return (
     <div className="grid gap-lg">
       <section className="card card--soft">
         <h2 className="card-title">Placement Assessment</h2>
         <p className="muted">
-          This questionnaire estimates your optimal starting week. In the final
-          version this screen will be backed by an Agentic evaluation service;
-          for now it is a static prototype.
+          Answer the questions below, then calculate your recommended starting week.
         </p>
 
-        <form className="form-grid">
-          <Question
-            label="How comfortable are you with Python programming?"
-            name="python_level"
-            options={[
-              "No experience",
-              "Basic (variables, loops, functions)",
-              "Intermediate (OOP, error handling, packages)",
-              "Advanced (async, decorators, production code)",
-            ]}
-          />
+        <form className="form-grid" onSubmit={(e) => e.preventDefault()}>
+          {placementTest.map((q) => (
+            <Question
+              key={q.id}
+              label={q.question}
+              name={`placement-q-${q.id}`}
+              options={[...q.options]}
+              selectedValue={placementAnswers[q.id]}
+              onSelect={(value) =>
+                setPlacementAnswers((prev) => ({ ...prev, [q.id]: value }))
+              }
+            />
+          ))}
 
-          <Question
-            label="Have you worked with LLM APIs (OpenAI, Anthropic, etc.)?"
-            name="llm_apis"
-            options={[
-              "Never used",
-              "Familiar with concepts, no hands-on",
-              "Basic API calls and simple prompts",
-              "Advanced usage with complex workflows",
-            ]}
-          />
-
-          <Question
-            label="What is your experience with prompt engineering?"
-            name="prompt"
-            options={[
-              "No experience",
-              "Basic chat prompts",
-              "Structured prompts with examples",
-              "Advanced techniques (CoT, few-shot, multi-step)",
-            ]}
-          />
-
-          <Question
-            label="Experience with AI frameworks (LangChain, LlamaIndex)?"
-            name="frameworks"
-            options={[
-              "Never heard of them",
-              "Aware but not used",
-              "Built simple applications",
-              "Production-level implementations",
-            ]}
-          />
-
-          <Question
-            label="Knowledge of RAG (Retrieval Augmented Generation)?"
-            name="rag"
-            options={[
-              "No knowledge",
-              "Understand the concept",
-              "Implemented basic RAG systems",
-              "Optimized RAG with hybrid search",
-            ]}
-          />
-
-          <Question
-            label="Experience with vector databases?"
-            name="vector_dbs"
-            options={[
-              "No experience",
-              "Understand embeddings conceptually",
-              "Used vector DBs in projects",
-              "Optimized vector search performance",
-            ]}
-          />
-
-          <div className="form-actions">
-            <button type="button" className="btn-primary">
+          <div className="row gap-md">
+            <button type="button" className="btn" onClick={calculatePlacement}>
               Calculate My Starting Week
             </button>
-            <button type="button" className="btn-secondary">
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => alert("AI recommendation is demo-only for now.")}
+            >
               Smart Recommendation (AI – demo only)
             </button>
           </div>
         </form>
       </section>
+
+      {placementResult && (
+        <section className="card">
+          <h3 className="card-title">Your Results</h3>
+          <p className="muted">
+            Score: <strong>{placementResult.percentage}%</strong>
+          </p>
+          <p>
+            Recommended starting week: <strong>Week {placementResult.startWeek}</strong>
+          </p>
+          <p className="muted">{placementResult.recommendation}</p>
+        </section>
+      )}
     </div>
   );
 }
+
 
 
 /* =========================================================
