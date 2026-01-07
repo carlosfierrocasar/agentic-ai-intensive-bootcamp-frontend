@@ -30,12 +30,9 @@ function App() {
           <div>
             <h1 className="shell-title">Agentic AI Intensive Bootcamp</h1>
             <p className="shell-subtitle">
-              7-Week Accelerated Training · 6–8 hrs/day · Internal Prototype
+              7-Week Accelerated Training · 6–8 hrs/day
             </p>
           </div>
-        </div>
-        <div className="shell-header-right">
-          <span className="shell-chip">Cohort demo · Carlos</span>
         </div>
       </header>
 
@@ -391,13 +388,6 @@ function PlacementTab() {
           <div className="row gap-md">
             <button type="button" className="btn" onClick={calculatePlacement}>
               Calculate My Starting Week
-            </button>
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => alert("AI recommendation is demo-only for now.")}
-            >
-              Smart Recommendation (AI – demo only)
             </button>
           </div>
         </form>
