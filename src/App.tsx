@@ -1422,18 +1422,16 @@ function ProgressTab() {
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [expandedById, setExpandedById] = useState<Record<number, boolean>>({});
-
-  // Reporting (Managers)
   const [showOverview, setShowOverview] = useState(true);
-  const [breakdownTargetRole, setBreakdownTargetRole] = useState(true);
-  const [breakdownStartWeek, setBreakdownStartWeek] = useState(false);
-  const [currentProgramWeek, setCurrentProgramWeek] = useState<number>(1);
+  const [breakdownByTargetRole, setBreakdownByTargetRole] = useState(true);
+  const [breakdownByStartWeek, setBreakdownByStartWeek] = useState(false);
+  const [programWeek, setProgramWeek] = useState(1);
 
-  const TOTAL_WEEKS = 7;
 
   function toggleExpanded(learnerId: number) {
     setExpandedById((prev) => ({ ...prev, [learnerId]: !prev[learnerId] }));
   }
+
 
   async function loadData() {
     try {
@@ -1452,148 +1450,6 @@ function ProgressTab() {
     loadData();
   }, []);
 
-  function clamp(n: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, n));
-  }
-
-  function safeOverallPct(l: Learner): number {
-    const raw = (l as any).overall_progress_pct;
-    if (typeof raw === "number" && Number.isFinite(raw)) return clamp(raw, 0, 100);
-
-    const progress = Array.isArray((l as any).progress) ? ((l as any).progress as WeekProgress[]) : [];
-    if (progress.length === 0) return 0;
-
-    let done = 0;
-    let total = 0;
-    for (const w of progress) {
-      done += Number(w.modules_completed || 0);
-      total += Number(w.total_modules || 0);
-    }
-    if (total <= 0) return 0;
-    return clamp((done / total) * 100, 0, 100);
-  }
-
-  function expectedPctForLearner(l: Learner): number {
-    const startWeek = Number((l as any).start_week || 1);
-    const effectiveWeeks = clamp(currentProgramWeek - startWeek + 1, 0, TOTAL_WEEKS);
-    return (effectiveWeeks / TOTAL_WEEKS) * 100;
-  }
-
-  function isOnTrack(l: Learner): boolean {
-    const actual = safeOverallPct(l);
-    const expected = expectedPctForLearner(l);
-    return actual >= expected;
-  }
-
-  function buildOverview() {
-    const total = learners.length;
-    const avg =
-      total === 0
-        ? 0
-        : learners.reduce((acc, l) => acc + safeOverallPct(l), 0) / total;
-
-    const onTrack = learners.filter(isOnTrack).length;
-    const atRisk = total - onTrack;
-
-    return {
-      total,
-      avgPct: clamp(avg, 0, 100),
-      onTrack,
-      atRisk,
-    };
-  }
-
-  type ReportRow = {
-    target_role?: string;
-    start_week?: number;
-    learners: number;
-    avg_progress: number;
-    on_track: number;
-    at_risk: number;
-    status?: "OK" | "Risk";
-  };
-
-  function buildReportRows(): ReportRow[] {
-    if (!breakdownTargetRole && !breakdownStartWeek) return [];
-
-    const groups = new Map<string, Learner[]>();
-
-    for (const l of learners) {
-      const tr = String((l as any).target_role || "—");
-      const sw = Number((l as any).start_week || 1);
-
-      let key = "all";
-      if (breakdownTargetRole && breakdownStartWeek) key = `${tr}||${sw}`;
-      else if (breakdownTargetRole) key = tr;
-      else if (breakdownStartWeek) key = String(sw);
-
-      const arr = groups.get(key) ?? [];
-      arr.push(l);
-      groups.set(key, arr);
-    }
-
-    const rows: ReportRow[] = [];
-
-    for (const [key, arr] of groups.entries()) {
-      const learnersCount = arr.length;
-      const avg =
-        learnersCount === 0
-          ? 0
-          : arr.reduce((acc, l) => acc + safeOverallPct(l), 0) / learnersCount;
-
-      const onTrack = arr.filter(isOnTrack).length;
-      const atRisk = learnersCount - onTrack;
-
-      if (breakdownTargetRole && breakdownStartWeek) {
-        const [tr, swStr] = key.split("||");
-        const sw = Number(swStr);
-        const expected = (clamp(currentProgramWeek - sw + 1, 0, TOTAL_WEEKS) / TOTAL_WEEKS) * 100;
-        const status: "OK" | "Risk" = avg >= expected ? "OK" : "Risk";
-        rows.push({
-          target_role: tr,
-          start_week: sw,
-          learners: learnersCount,
-          avg_progress: clamp(avg, 0, 100),
-          on_track: onTrack,
-          at_risk: atRisk,
-          status,
-        });
-      } else if (breakdownTargetRole) {
-        rows.push({
-          target_role: key,
-          learners: learnersCount,
-          avg_progress: clamp(avg, 0, 100),
-          on_track: onTrack,
-          at_risk: atRisk,
-        });
-      } else {
-        const sw = Number(key);
-        const expected = (clamp(currentProgramWeek - sw + 1, 0, TOTAL_WEEKS) / TOTAL_WEEKS) * 100;
-        const status: "OK" | "Risk" = avg >= expected ? "OK" : "Risk";
-        rows.push({
-          start_week: sw,
-          learners: learnersCount,
-          avg_progress: clamp(avg, 0, 100),
-          on_track: onTrack,
-          at_risk: atRisk,
-          status,
-        });
-      }
-    }
-
-    // Stable ordering for managers
-    rows.sort((a, b) => {
-      const aTR = a.target_role ?? "";
-      const bTR = b.target_role ?? "";
-      if (aTR !== bTR) return aTR.localeCompare(bTR);
-      const aSW = a.start_week ?? 0;
-      const bSW = b.start_week ?? 0;
-      return aSW - bSW;
-    });
-
-    return rows;
-  }
-
   async function handleAddLearner() {
     if (!form.name || !form.source_role || !form.target_role) {
       alert("Please fill all fields.");
@@ -1608,6 +1464,7 @@ function ProgressTab() {
       source_role: form.source_role,
       target_role: form.target_role,
       start_week: Number(form.start_week),
+      // opcional: algunos backends pueden omitir estos; los dejamos seguros
       overall_progress_pct: 0,
       overall_modules_total: 0,
       overall_modules_completed: 0,
@@ -1616,6 +1473,8 @@ function ProgressTab() {
 
     try {
       setIsAdding(true);
+
+      // Optimistic UI: aparece de inmediato en la lista
       setLearners((prev) => [...prev, tempLearner]);
 
       const created = await createLearner({
@@ -1625,6 +1484,7 @@ function ProgressTab() {
         start_week: tempLearner.start_week,
       });
 
+      // Reemplaza el temporal por el real
       setLearners((prev) => prev.map((l) => (l.id === tempId ? created : l)));
       setExpandedById((prev) => {
         const next = { ...prev };
@@ -1635,6 +1495,7 @@ function ProgressTab() {
       setForm(DEFAULT_FORM);
     } catch (err) {
       console.error(err);
+      // Quita el temporal si falló
       setLearners((prev) => prev.filter((l) => l.id !== tempId));
       setExpandedById((prev) => {
         const next = { ...prev };
@@ -1663,9 +1524,15 @@ function ProgressTab() {
     }
   }
 
-  function getWeekStatus(learner: Learner, weekProgress: WeekProgress): string {
+  function getWeekStatus(
+    learner: Learner,
+    weekProgress: WeekProgress
+  ): string {
     if (weekProgress.week < learner.start_week) return "Skipped";
-    if (weekProgress.modules_completed === 0 && weekProgress.assessment_pct === 0)
+    if (
+      weekProgress.modules_completed === 0 &&
+      weekProgress.assessment_pct === 0
+    )
       return "Not started";
     if (
       weekProgress.modules_completed >= weekProgress.total_modules &&
@@ -1690,167 +1557,258 @@ function ProgressTab() {
       safeProgress.length > 0
         ? safeProgress
         : weekTotals.map((t, i) => ({
-            week: i + 1,
-            modules_completed: 0,
-            total_modules: t,
-            assessment_pct: 0,
-          }));
+          week: i + 1,
+          modules_completed: 0,
+          total_modules: t,
+          assessment_pct: 0,
+        }));
 
     const newProgress = normalizedProgress.map((p) =>
+
+
       p.week === week
         ? {
-            ...p,
-            [field]:
-              field === "modules_completed"
-                ? Math.max(0, Math.min(value, p.total_modules))
-                : Math.max(0, Math.min(value, 100)),
-          }
+          ...p,
+          [field]:
+            field === "modules_completed"
+              ? Math.max(0, Math.min(value, p.total_modules))
+              : Math.max(0, Math.min(value, 100)),
+        }
         : p
     );
 
+    // update local de inmediato
     setLearners((prev) =>
       prev.map((l) => (l.id === learnerId ? { ...l, progress: newProgress } : l))
     );
 
+    // guardar en backend y refrescar datos de ese learner (incluye overall %)
     try {
       const updated = await updateLearnerProgress(learnerId, newProgress);
-      setLearners((prev) => prev.map((l) => (l.id === learnerId ? updated : l)));
+      setLearners((prev) =>
+        prev.map((l) => (l.id === learnerId ? updated : l))
+      );
     } catch (err) {
       console.error(err);
       alert(`Error saving progress: ${String(err)}`);
+      // recargar desde backend para no dejar datos chuecos
       loadData();
     }
   }
+  const TOTAL_PROGRAM_MODULES = 34; // 7 weeks * 5 modules - 1 skipped week (example); used only for % display
 
-  const overview = buildOverview();
-  const reportRows = buildReportRows();
+  function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function learnerOverallPct(learner: Learner) {
+    const completed = learner.progress.reduce((sum, w) => sum + (w.modules_completed || 0), 0);
+    return TOTAL_PROGRAM_MODULES > 0 ? Math.round((completed / TOTAL_PROGRAM_MODULES) * 100) : 0;
+  }
+
+  function expectedPct(learner: Learner, pw: number) {
+    const startedWeek = learner.start_week ?? 1;
+    const weeksIntoProgram = clamp(pw - startedWeek + 1, 0, 7);
+    // expected = linear pace by week (rough); managers just need a consistent indicator
+    return Math.round((weeksIntoProgram / 7) * 100);
+  }
+
+  function isOnTrack(learner: Learner, pw: number) {
+    return learnerOverallPct(learner) >= expectedPct(learner, pw);
+  }
+
+  type SummaryRow = {
+    key: string;
+    target_role?: string;
+    start_week?: number;
+    learners: number;
+    avg_progress: number;
+    on_track: number;
+    at_risk: number;
+  };
+
+  function buildSummaryRows(list: Learner[]): SummaryRow[] {
+    const useTarget = breakdownByTargetRole;
+    const useStart = breakdownByStartWeek;
+
+    const buckets = new Map<string, SummaryRow>();
+
+    for (const l of list) {
+      const tr = l.target_role || "";
+      const sw = l.start_week ?? 1;
+
+      const parts: string[] = [];
+      if (useTarget) parts.push(`target_role=${tr}`);
+      if (useStart) parts.push(`start_week=${sw}`);
+      const key = parts.length ? parts.join(" | ") : "All learners";
+
+      const row = buckets.get(key) ?? {
+        key,
+        target_role: useTarget ? tr : undefined,
+        start_week: useStart ? sw : undefined,
+        learners: 0,
+        avg_progress: 0,
+        on_track: 0,
+        at_risk: 0,
+      };
+
+      row.learners += 1;
+      const pct = learnerOverallPct(l);
+      row.avg_progress += pct;
+      if (isOnTrack(l, programWeek)) row.on_track += 1;
+      else row.at_risk += 1;
+
+      buckets.set(key, row);
+    }
+
+    const rows = Array.from(buckets.values()).map((r) => ({
+      ...r,
+      avg_progress: r.learners ? Math.round(r.avg_progress / r.learners) : 0,
+    }));
+
+    // stable ordering for managers: Target Role, then Start Week, then name
+    rows.sort((a, b) => a.key.localeCompare(b.key));
+    return rows;
+  }
+
+  const totalLearners = learners.length;
+  const avgProgress =
+    totalLearners === 0
+      ? 0
+      : Math.round(
+          learners.reduce((sum, l) => sum + learnerOverallPct(l), 0) / totalLearners
+        );
+  const onTrackCount = learners.reduce(
+    (sum, l) => sum + (isOnTrack(l, programWeek) ? 1 : 0),
+    0
+  );
+  const atRiskCount = totalLearners - onTrackCount;
+  const summaryRows = buildSummaryRows(learners);
+
+
 
   return (
     <div className="grid gap-lg">
-      {/* ===== Managers: Progress Overview (basic reporting) ===== */}
-      <section className="card card--soft">
-        <div className="card-header-row">
-          <div>
-            <h2 className="card-title">Progress Overview</h2>
-            <p className="card-subtitle">
-              Quick summary for managers. Toggle the breakdown to see details.
-            </p>
+
+        <section className="card progress-overview-card">
+          <div className="card-header-row">
+            <div>
+              <h2 className="section-title">Progress Overview</h2>
+              <p className="section-subtitle">
+                Quick summary for managers. Toggle the breakdown to see details.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="btn-primary btn-small"
+              onClick={() => setShowOverview((v) => !v)}
+            >
+              {showOverview ? "Hide Overview" : "Show Overview"}
+            </button>
           </div>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => setShowOverview((v) => !v)}
-          >
-            {showOverview ? "Hide Overview" : "Show Overview"}
-          </button>
-        </div>
 
-        {showOverview && (
-          <div className="grid gap-md">
-            <div className="overview-grid">
-              <div className="stat-card stat-card--light">
-                <div className="stat-label">Total Learners</div>
-                <div className="stat-value">{overview.total}</div>
-              </div>
-              <div className="stat-card stat-card--light">
-                <div className="stat-label">Average Progress</div>
-                <div className="stat-value">{Math.round(overview.avgPct)}%</div>
-              </div>
-              <div className="stat-card stat-card--light">
-                <div className="stat-label">On Track</div>
-                <div className="stat-value">{overview.onTrack}</div>
-              </div>
-              <div className="stat-card stat-card--light">
-                <div className="stat-label">At Risk</div>
-                <div className="stat-value">{overview.atRisk}</div>
-              </div>
-            </div>
+          {showOverview && (
+            <>
+              <div className="overview-metrics">
+                <div className="overview-metric">
+                  <div className="overview-metric-label">Total Learners</div>
+                  <div className="overview-metric-value">{totalLearners}</div>
+                </div>
 
-            <div className="row-between wrap gap-md">
-              <div className="row gap-md">
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={breakdownTargetRole}
-                    onChange={(e) => setBreakdownTargetRole(e.target.checked)}
-                  />
-                  <span>Target Role</span>
-                </label>
+                <div className="overview-metric">
+                  <div className="overview-metric-label">Average Progress</div>
+                  <div className="overview-metric-value">{avgProgress}%</div>
+                </div>
 
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={breakdownStartWeek}
-                    onChange={(e) => setBreakdownStartWeek(e.target.checked)}
-                  />
-                  <span>Start Week</span>
-                </label>
+                <div className="overview-metric">
+                  <div className="overview-metric-label">On Track</div>
+                  <div className="overview-metric-value">{onTrackCount}</div>
+                </div>
+
+                <div className="overview-metric">
+                  <div className="overview-metric-label">At Risk</div>
+                  <div className="overview-metric-value">{atRiskCount}</div>
+                </div>
               </div>
 
-              <div className="row gap-sm">
-                <label className="small-label">Program Week</label>
-                <select
-                  className="input-line"
-                  style={{ maxWidth: 120 }}
-                  value={currentProgramWeek}
-                  onChange={(e) => setCurrentProgramWeek(Number(e.target.value))}
-                >
-                  {Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1).map((w) => (
-                    <option key={w} value={w}>
-                      Week {w}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+              <div className="overview-controls">
+                <div className="overview-control-group">
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={breakdownByTargetRole}
+                      onChange={(e) => setBreakdownByTargetRole(e.target.checked)}
+                    />
+                    Target Role
+                  </label>
 
-            {reportRows.length > 0 && (
-              <div className="table-wrap">
-                <table className="report-table">
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={breakdownByStartWeek}
+                      onChange={(e) => setBreakdownByStartWeek(e.target.checked)}
+                    />
+                    Start Week
+                  </label>
+                </div>
+
+                <div className="overview-control-group">
+                  <label className="overview-select-label">Program Week</label>
+                  <select
+                    className="overview-select"
+                    value={programWeek}
+                    onChange={(e) => setProgramWeek(Number(e.target.value))}
+                  >
+                    {Array.from({ length: 7 }, (_, i) => i + 1).map((w) => (
+                      <option key={w} value={w}>
+                        Week {w}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="overview-table-wrap">
+                <table className="overview-table">
                   <thead>
                     <tr>
-                      {breakdownTargetRole && <th>Target Role</th>}
-                      {breakdownStartWeek && <th>Start Week</th>}
+                      <th>Group</th>
                       <th>Learners</th>
                       <th>Avg Progress</th>
                       <th>On Track</th>
                       <th>At Risk</th>
-                      {(breakdownStartWeek || (breakdownTargetRole && breakdownStartWeek)) && (
-                        <th>Status</th>
-                      )}
                     </tr>
                   </thead>
                   <tbody>
-                    {reportRows.map((r, idx) => (
-                      <tr key={idx}>
-                        {breakdownTargetRole && <td>{r.target_role ?? "—"}</td>}
-                        {breakdownStartWeek && <td>{r.start_week ?? "—"}</td>}
-                        <td>{r.learners}</td>
-                        <td>{Math.round(r.avg_progress)}%</td>
-                        <td>{r.on_track}</td>
-                        <td>{r.at_risk}</td>
-                        {(breakdownStartWeek || (breakdownTargetRole && breakdownStartWeek)) && (
-                          <td>{r.status ?? "—"}</td>
-                        )}
+                    {summaryRows.map((row) => (
+                      <tr key={row.key}>
+                        <td>{row.key}</td>
+                        <td>{row.learners}</td>
+                        <td>{row.avg_progress}%</td>
+                        <td>{row.on_track}</td>
+                        <td>{row.at_risk}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            )}
 
-            <p className="tiny-note">
-              On Track = progress ≥ expected progress based on Program Week and Start Week.
-            </p>
-          </div>
-        )}
-      </section>
+              <p className="overview-footnote">
+                On Track = progress at or above expected pace based on Program Week and Start Week.
+              </p>
+            </>
+          )}
+        </section>
 
-      {/* ===== Existing UI below (Add + Learners) ===== */}
+
       <section className="card card--soft">
         <h2 className="card-title">Add New Learner</h2>
 
-        <form className="add-learner-form" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="add-learner-form"
+          onSubmit={(e) => e.preventDefault()}
+        >
           <input
             className="input-line"
             placeholder="Name"
@@ -1882,18 +1840,22 @@ function ProgressTab() {
           <select
             className="input-line"
             value={form.start_week}
-            onChange={(e) => setForm({ ...form, start_week: Number(e.target.value) })}
+            onChange={(e) =>
+              setForm({ ...form, start_week: Number(e.target.value) })
+            }
           >
-            {Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1).map((w) => (
-              <option key={w} value={w}>
-                Start Week {w}
-              </option>
-            ))}
+            <option value={1}>Start Week 1</option>
+            <option value={2}>Start Week 2</option>
+            <option value={3}>Start Week 3</option>
+            <option value={4}>Start Week 4</option>
+            <option value={5}>Start Week 5</option>
+            <option value={6}>Start Week 6</option>
+            <option value={7}>Start Week 7</option>
           </select>
 
           <button
             type="button"
-            className="btn-primary"
+            className="btn-primary btn-full"
             onClick={handleAddLearner}
             disabled={isAdding}
           >
@@ -1904,47 +1866,59 @@ function ProgressTab() {
 
       <section className="card card--soft">
         <div className="card-header-row">
-          <h2 className="card-title">Learners</h2>
-          {loading && <span className="pill pill-soft">Loading…</span>}
+          <div>
+            <h2 className="card-title">Learners</h2>
+            <p className="card-subtitle">
+              Track progress week by week. Fields are editable and stored in
+              PostgreSQL.
+            </p>
+          </div>
         </div>
 
-        {learners.length === 0 && !loading && (
+        {loading && <p className="muted">Loading...</p>}
+
+        {!loading && learners.length === 0 && (
           <p className="muted">No learners yet. Add one above.</p>
         )}
 
-        <div className="grid gap-md">
+        <div className="learner-list">
           {learners.map((learner) => {
-            const isExpanded = !!expandedById[learner.id];
-            const safeProgress = Array.isArray(learner.progress) ? learner.progress : [];
-            const weekTotals = [5, 5, 5, 5, 5, 5, 4];
-            const normalizedProgress =
-              safeProgress.length > 0
-                ? safeProgress
-                : weekTotals.map((t, i) => ({
-                    week: i + 1,
-                    modules_completed: 0,
-                    total_modules: t,
-                    assessment_pct: 0,
-                  }));
+            const overall = Math.round(learner.overall_progress_pct || 0);
+            const totalModules = learner.overall_modules_total || 34;
+            const completedModules = learner.overall_modules_completed || 0;
+            const isExpanded = expandedById[learner.id] ?? false;
 
-            const overallPct = safeOverallPct(learner);
 
             return (
-              <div key={learner.id} className="learner-card">
-                <div className="learner-row">
-                  <div className="row gap-md wrap">
-                    <strong>{learner.name}</strong>
-                    <span className="pill pill-soft">
-                      {learner.source_role} → {learner.target_role}
-                    </span>
-                    <span className="pill pill-soft">Start Week {learner.start_week}</span>
-                    <span className="pill pill-soft">{Math.round(overallPct)}%</span>
+              <article className="learner-card" key={learner.id}>
+                <header className="learner-card-header">
+                  <div className="learner-meta">
+                    <div className="avatar-circle" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                        <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div className="learner-meta-text">
+                      <div className="learner-name">{learner.name}</div>
+                      <div className="learner-roles">
+                        {learner.source_role} → {learner.target_role}
+                      </div>
+                      <div className="learner-start">
+                        Starting from Week {learner.start_week}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="row gap-sm">
+                  <div className="learner-summary">
+                    <div className="overall-label">Overall Progress</div>
+                    <div className="overall-value">{overall}%</div>
+                    <div className="overall-sub">
+                      {completedModules} / {totalModules} modules
+                    </div>
                     <button
                       type="button"
-                      className="btn-primary"
+                      className="btn-primary btn-small"
                       onClick={() => toggleExpanded(learner.id)}
                     >
                       {isExpanded ? "Collapse details" : "Expand details"}
@@ -1952,68 +1926,104 @@ function ProgressTab() {
 
                     <button
                       type="button"
-                      className="btn-primary"
+                      className="btn-danger btn-small"
                       onClick={() => handleDelete(learner.id)}
                     >
                       Delete learner
                     </button>
                   </div>
-                </div>
+                </header>
 
                 {isExpanded && (
-                  <div className="grid gap-sm" style={{ marginTop: 12 }}>
-                    {normalizedProgress.map((w) => (
-                      <div key={w.week} className="week-row">
-                        <div className="row gap-md wrap">
-                          <strong>Week {w.week}</strong>
-                          <span className="muted">
-                            Status: {getWeekStatus(learner, w)}
-                          </span>
-                          <span className="muted">
-                            Modules: {w.modules_completed}/{w.total_modules}
-                          </span>
-                          <span className="muted">Assessment: {w.assessment_pct}%</span>
+                  <>
+                <div className="progress-bar-row">
+                  <div className="progress-bar-track">
+                    <div
+                      className="progress-bar-fill"
+                      style={{ width: `${overall}%` }}
+                    />
+                  </div>
+                  <div className="progress-bar-label">
+                    {overall}% Complete
+                  </div>
+                </div>
+
+                <div className="week-progress-grid">
+                  {learner.progress.map((week) => {
+                    const status = getWeekStatus(learner, week);
+
+                    return (
+                      <div
+                        key={week.week}
+                        className={`week-progress-card ${status === "Completed"
+                          ? "week-progress-card--completed"
+                          : status === "Skipped"
+                            ? "week-progress-card--skipped"
+                            : ""
+                          }`}
+                      >
+                        <div className="week-title-row">
+                          <div className="week-label">Week {week.week}</div>
                         </div>
 
-                        <div className="row gap-sm">
-                          <input
-                            className="input-line"
-                            style={{ maxWidth: 110 }}
-                            type="number"
-                            min={0}
-                            max={w.total_modules}
-                            value={w.modules_completed}
-                            onChange={(e) =>
-                              handleWeekChange(
-                                learner.id,
-                                w.week,
-                                "modules_completed",
-                                Number(e.target.value)
-                              )
-                            }
-                          />
-                          <input
-                            className="input-line"
-                            style={{ maxWidth: 110 }}
-                            type="number"
-                            min={0}
-                            max={100}
-                            value={w.assessment_pct}
-                            onChange={(e) =>
-                              handleWeekChange(
-                                learner.id,
-                                w.week,
-                                "assessment_pct",
-                                Number(e.target.value)
-                              )
-                            }
-                          />
+                        <div className="week-field">
+                          <label className="week-field-label">
+                            Modules completed
+                          </label>
+                          <div className="week-field-input-row">
+                            <input
+                              type="number"
+                              min={0}
+                              max={week.total_modules}
+                              value={week.modules_completed}
+                              onChange={(e) =>
+                                handleWeekChange(
+                                  learner.id,
+                                  week.week,
+                                  "modules_completed",
+                                  Number(e.target.value || 0)
+                                )
+                              }
+                              className="week-input"
+                            />
+                            <span className="week-field-suffix">
+                              / {week.total_modules}
+                            </span>
+                          </div>
                         </div>
+
+                        <div className="week-field">
+                          <label className="week-field-label">
+                            Assessment %
+                          </label>
+                          <div className="week-field-input-row">
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={week.assessment_pct}
+                              onChange={(e) =>
+                                handleWeekChange(
+                                  learner.id,
+                                  week.week,
+                                  "assessment_pct",
+                                  Number(e.target.value || 0)
+                                )
+                              }
+                              className="week-input"
+                            />
+                            <span className="week-field-suffix">%</span>
+                          </div>
+                        </div>
+
+                        <div className="week-status">{status}</div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
+                </div>
+                  </>
                 )}
-              </div>
+              </article>
             );
           })}
         </div>
@@ -2021,4 +2031,5 @@ function ProgressTab() {
     </div>
   );
 }
+
 export default App;
