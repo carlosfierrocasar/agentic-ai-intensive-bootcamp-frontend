@@ -1416,16 +1416,115 @@ const DEFAULT_FORM: NewLearnerForm = {
   start_week: 1,
 };
 
+function UserIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M20 21a8 8 0 0 0-16 0"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ProgressTab() {
   const [learners, setLearners] = useState<Learner[]>([]);
   const [form, setForm] = useState<NewLearnerForm>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [expandedById, setExpandedById] = useState<Record<number, boolean>>({});
-  const [showOverview, setShowOverview] = useState(true);
-  const [breakdownByTargetRole, setBreakdownByTargetRole] = useState(true);
-  const [breakdownByStartWeek, setBreakdownByStartWeek] = useState(false);
-  const [programWeek, setProgramWeek] = useState(1);
+
+// Manager reporting (basic)
+const [showManagerOverview, setShowManagerOverview] = useState(true);
+const [breakdownByTargetRole, setBreakdownByTargetRole] = useState(true);
+const [breakdownByStartWeek, setBreakdownByStartWeek] = useState(false);
+const [programWeek, setProgramWeek] = useState<number>(1);
+
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function expectedProgressPctForLearner(l: Learner, currentProgramWeek: number) {
+  // Simple expectation: each program week ~ 1/7 of the journey from the learner's start week.
+  // If learner hasn't started yet (programWeek < start_week), expectation is 0%.
+  const weeksIntoProgram = currentProgramWeek - (l.start_week || 1) + 1;
+  if (weeksIntoProgram <= 0) return 0;
+  return clamp((weeksIntoProgram / 7) * 100, 0, 100);
+}
+
+type ManagerRow = {
+  groupLabel: string;
+  count: number;
+  avgProgress: number; // 0-100
+  onTrack: number;
+  atRisk: number;
+};
+
+function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
+  const useTarget = breakdownByTargetRole;
+  const useStart = breakdownByStartWeek;
+
+  const keyFor = (l: Learner) => {
+    const parts: string[] = [];
+    if (useTarget) parts.push(`target_role=${l.target_role || "N/A"}`);
+    if (useStart) parts.push(`start_week=${l.start_week || "N/A"}`);
+    return parts.length ? parts.join(" | ") : "All learners";
+  };
+
+  const map = new Map<string, Learner[]>();
+  for (const l of learners) {
+    const k = keyFor(l);
+    const arr = map.get(k) || [];
+    arr.push(l);
+    map.set(k, arr);
+  }
+
+  const rows: ManagerRow[] = [];
+  for (const [k, arr] of map.entries()) {
+    const progresses = arr.map((l) => Number(l.overall_progress_pct || 0));
+    const avg =
+      progresses.length === 0
+        ? 0
+        : progresses.reduce((a, b) => a + b, 0) / progresses.length;
+
+    let onTrack = 0;
+    let atRisk = 0;
+    for (const l of arr) {
+      const expected = expectedProgressPctForLearner(l, currentProgramWeek);
+      const actual = Number(l.overall_progress_pct || 0);
+      if (actual >= expected) onTrack += 1;
+      else atRisk += 1;
+    }
+
+    rows.push({
+      groupLabel: k,
+      count: arr.length,
+      avgProgress: Math.round(avg),
+      onTrack,
+      atRisk,
+    });
+  }
+
+  // stable ordering: biggest groups first, then label
+  rows.sort((a, b) => b.count - a.count || a.groupLabel.localeCompare(b.groupLabel));
+  return rows;
+}
 
 
   function toggleExpanded(learnerId: number) {
@@ -1595,212 +1694,141 @@ function ProgressTab() {
       loadData();
     }
   }
-  const TOTAL_PROGRAM_MODULES = 34; // 7 weeks * 5 modules - 1 skipped week (example); used only for % display
-
-  function clamp(n: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, n));
-  }
-
-  function learnerOverallPct(learner: Learner) {
-    const completed = learner.progress.reduce((sum, w) => sum + (w.modules_completed || 0), 0);
-    return TOTAL_PROGRAM_MODULES > 0 ? Math.round((completed / TOTAL_PROGRAM_MODULES) * 100) : 0;
-  }
-
-  function expectedPct(learner: Learner, pw: number) {
-    const startedWeek = learner.start_week ?? 1;
-    const weeksIntoProgram = clamp(pw - startedWeek + 1, 0, 7);
-    // expected = linear pace by week (rough); managers just need a consistent indicator
-    return Math.round((weeksIntoProgram / 7) * 100);
-  }
-
-  function isOnTrack(learner: Learner, pw: number) {
-    return learnerOverallPct(learner) >= expectedPct(learner, pw);
-  }
-
-  type SummaryRow = {
-    key: string;
-    target_role?: string;
-    start_week?: number;
-    learners: number;
-    avg_progress: number;
-    on_track: number;
-    at_risk: number;
-  };
-
-  function buildSummaryRows(list: Learner[]): SummaryRow[] {
-    const useTarget = breakdownByTargetRole;
-    const useStart = breakdownByStartWeek;
-
-    const buckets = new Map<string, SummaryRow>();
-
-    for (const l of list) {
-      const tr = l.target_role || "";
-      const sw = l.start_week ?? 1;
-
-      const parts: string[] = [];
-      if (useTarget) parts.push(`target_role=${tr}`);
-      if (useStart) parts.push(`start_week=${sw}`);
-      const key = parts.length ? parts.join(" | ") : "All learners";
-
-      const row = buckets.get(key) ?? {
-        key,
-        target_role: useTarget ? tr : undefined,
-        start_week: useStart ? sw : undefined,
-        learners: 0,
-        avg_progress: 0,
-        on_track: 0,
-        at_risk: 0,
-      };
-
-      row.learners += 1;
-      const pct = learnerOverallPct(l);
-      row.avg_progress += pct;
-      if (isOnTrack(l, programWeek)) row.on_track += 1;
-      else row.at_risk += 1;
-
-      buckets.set(key, row);
-    }
-
-    const rows = Array.from(buckets.values()).map((r) => ({
-      ...r,
-      avg_progress: r.learners ? Math.round(r.avg_progress / r.learners) : 0,
-    }));
-
-    // stable ordering for managers: Target Role, then Start Week, then name
-    rows.sort((a, b) => a.key.localeCompare(b.key));
-    return rows;
-  }
-
-  const totalLearners = learners.length;
-  const avgProgress =
-    totalLearners === 0
-      ? 0
-      : Math.round(
-          learners.reduce((sum, l) => sum + learnerOverallPct(l), 0) / totalLearners
-        );
-  const onTrackCount = learners.reduce(
-    (sum, l) => sum + (isOnTrack(l, programWeek) ? 1 : 0),
-    0
-  );
-  const atRiskCount = totalLearners - onTrackCount;
-  const summaryRows = buildSummaryRows(learners);
-
-
 
   return (
     <div className="grid gap-lg">
 
-        <section className="card progress-overview-card">
-          <div className="card-header-row">
-            <div>
-              <h2 className="section-title">Progress Overview</h2>
-              <p className="section-subtitle">
-                Quick summary for managers. Toggle the breakdown to see details.
-              </p>
-            </div>
+{showManagerOverview && (
+  <section className="card card--soft progress-narrow">
+    <div className="manager-header">
+      <div>
+        <h2 className="card-title">Progress Overview</h2>
+        <p className="card-subtitle">
+          Quick summary for managers. Choose what to break down by.
+        </p>
+      </div>
+      <button
+        type="button"
+        className="btn-primary btn-compact"
+        onClick={() => setShowManagerOverview(false)}
+      >
+        Hide Overview
+      </button>
+    </div>
 
-            <button
-              type="button"
-              className="btn-primary btn-small"
-              onClick={() => setShowOverview((v) => !v)}
-            >
-              {showOverview ? "Hide Overview" : "Show Overview"}
-            </button>
-          </div>
+    <div className="manager-controls">
+      <label className="chk">
+        <input
+          type="checkbox"
+          checked={breakdownByTargetRole}
+          onChange={(e) => setBreakdownByTargetRole(e.target.checked)}
+        />
+        Target Role
+      </label>
 
-          {showOverview && (
-            <>
-              <div className="overview-metrics">
-                <div className="overview-metric">
-                  <div className="overview-metric-label">Total Learners</div>
-                  <div className="overview-metric-value">{totalLearners}</div>
-                </div>
+      <label className="chk">
+        <input
+          type="checkbox"
+          checked={breakdownByStartWeek}
+          onChange={(e) => setBreakdownByStartWeek(e.target.checked)}
+        />
+        Start Week
+      </label>
 
-                <div className="overview-metric">
-                  <div className="overview-metric-label">Average Progress</div>
-                  <div className="overview-metric-value">{avgProgress}%</div>
-                </div>
+      <div className="manager-week">
+        <span className="muted">Program Week</span>
+        <select
+          className="input-line input-compact"
+          value={programWeek}
+          onChange={(e) => setProgramWeek(Number(e.target.value))}
+        >
+          <option value={1}>Week 1</option>
+          <option value={2}>Week 2</option>
+          <option value={3}>Week 3</option>
+          <option value={4}>Week 4</option>
+          <option value={5}>Week 5</option>
+          <option value={6}>Week 6</option>
+          <option value={7}>Week 7</option>
+        </select>
+      </div>
+    </div>
 
-                <div className="overview-metric">
-                  <div className="overview-metric-label">On Track</div>
-                  <div className="overview-metric-value">{onTrackCount}</div>
-                </div>
+    <div className="manager-grid">
+      <div className="stat-card stat-card--light">
+        <div className="muted">Total learners</div>
+        <div className="stat-value">{learners.length}</div>
+      </div>
+      <div className="stat-card stat-card--light">
+        <div className="muted">Average progress</div>
+        <div className="stat-value">
+          {learners.length
+            ? Math.round(
+                learners.reduce(
+                  (a, l) => a + Number(l.overall_progress_pct || 0),
+                  0
+                ) / learners.length
+              )
+            : 0}
+          %
+        </div>
+      </div>
+      <div className="stat-card stat-card--light">
+        <div className="muted">On track</div>
+        <div className="stat-value">
+          {buildManagerRows(programWeek).reduce((a, r) => a + r.onTrack, 0)}
+        </div>
+      </div>
+      <div className="stat-card stat-card--light">
+        <div className="muted">At risk</div>
+        <div className="stat-value">
+          {buildManagerRows(programWeek).reduce((a, r) => a + r.atRisk, 0)}
+        </div>
+      </div>
+    </div>
 
-                <div className="overview-metric">
-                  <div className="overview-metric-label">At Risk</div>
-                  <div className="overview-metric-value">{atRiskCount}</div>
-                </div>
-              </div>
+    <div className="manager-table-wrap">
+      <table className="manager-table">
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th className="num">Learners</th>
+            <th className="num">Avg Progress</th>
+            <th className="num">On Track</th>
+            <th className="num">At Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          {buildManagerRows(programWeek).map((row) => (
+            <tr key={row.groupLabel}>
+              <td className="mono">{row.groupLabel}</td>
+              <td className="num">{row.count}</td>
+              <td className="num">{row.avgProgress}%</td>
+              <td className="num">{row.onTrack}</td>
+              <td className="num">{row.atRisk}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
 
-              <div className="overview-controls">
-                <div className="overview-control-group">
-                  <label className="checkbox-row">
-                    <input
-                      type="checkbox"
-                      checked={breakdownByTargetRole}
-                      onChange={(e) => setBreakdownByTargetRole(e.target.checked)}
-                    />
-                    Target Role
-                  </label>
+    <p className="muted small">
+      On Track = progress at or above expected pace based on Program Week and
+      Start Week.
+    </p>
+  </section>
+)}
 
-                  <label className="checkbox-row">
-                    <input
-                      type="checkbox"
-                      checked={breakdownByStartWeek}
-                      onChange={(e) => setBreakdownByStartWeek(e.target.checked)}
-                    />
-                    Start Week
-                  </label>
-                </div>
-
-                <div className="overview-control-group">
-                  <label className="overview-select-label">Program Week</label>
-                  <select
-                    className="overview-select"
-                    value={programWeek}
-                    onChange={(e) => setProgramWeek(Number(e.target.value))}
-                  >
-                    {Array.from({ length: 7 }, (_, i) => i + 1).map((w) => (
-                      <option key={w} value={w}>
-                        Week {w}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="overview-table-wrap">
-                <table className="overview-table">
-                  <thead>
-                    <tr>
-                      <th>Group</th>
-                      <th>Learners</th>
-                      <th>Avg Progress</th>
-                      <th>On Track</th>
-                      <th>At Risk</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {summaryRows.map((row) => (
-                      <tr key={row.key}>
-                        <td>{row.key}</td>
-                        <td>{row.learners}</td>
-                        <td>{row.avg_progress}%</td>
-                        <td>{row.on_track}</td>
-                        <td>{row.at_risk}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <p className="overview-footnote">
-                On Track = progress at or above expected pace based on Program Week and Start Week.
-              </p>
-            </>
-          )}
-        </section>
-
+{!showManagerOverview && (
+  <div className="progress-narrow">
+    <button
+      type="button"
+      className="btn-primary btn-compact"
+      onClick={() => setShowManagerOverview(true)}
+    >
+      Show Overview
+    </button>
+  </div>
+)}
 
       <section className="card card--soft">
         <h2 className="card-title">Add New Learner</h2>
@@ -1864,7 +1892,7 @@ function ProgressTab() {
         </form>
       </section>
 
-      <section className="card card--soft">
+      <section className="card card--soft progress-narrow">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
@@ -1894,10 +1922,7 @@ function ProgressTab() {
                 <header className="learner-card-header">
                   <div className="learner-meta">
                     <div className="avatar-circle" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                        <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                      </svg>
+                      <UserIcon size={18} />
                     </div>
                     <div className="learner-meta-text">
                       <div className="learner-name">{learner.name}</div>
@@ -1918,7 +1943,7 @@ function ProgressTab() {
                     </div>
                     <button
                       type="button"
-                      className="btn-primary btn-small"
+                      className="link-button"
                       onClick={() => toggleExpanded(learner.id)}
                     >
                       {isExpanded ? "Collapse details" : "Expand details"}
@@ -1926,7 +1951,7 @@ function ProgressTab() {
 
                     <button
                       type="button"
-                      className="btn-danger btn-small"
+                      className="link-button link-button-danger"
                       onClick={() => handleDelete(learner.id)}
                     >
                       Delete learner

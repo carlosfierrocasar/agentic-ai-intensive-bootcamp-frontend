@@ -943,144 +943,122 @@ body {
   }
 }
 
-
-/* --- Progress Tracking: Manager Overview (added) --- */
-.progress-overview-card .card-header-row{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:16px;
+/* Progress Tracking - constrain wide sections */
+.progress-narrow {
+  width: 100%;
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.section-title{
-  margin:0;
-  font-size:18px;
-  font-weight:700;
+/* Manager overview */
+.manager-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.section-subtitle{
-  margin:6px 0 0 0;
-  opacity:0.8;
-  font-size:13px;
+.manager-controls {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  align-items: center;
 }
 
-.btn-small{
-  padding:8px 12px;
-  font-size:12px;
-  line-height:1;
-  border-radius:10px;
+.chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-weight: 600;
 }
 
-.btn-danger{
-  background:#d64545;
-  color:#fff;
-  border:0;
-  padding:10px 14px;
-  border-radius:12px;
-  font-weight:600;
-  cursor:pointer;
+.manager-week {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.btn-danger:hover{ filter:brightness(0.95); }
-.btn-danger:active{ transform:translateY(1px); }
-
-.overview-metrics{
-  display:grid;
-  grid-template-columns:repeat(4, minmax(0, 1fr));
-  gap:12px;
-  margin-top:14px;
+.manager-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.overview-metric{
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:14px;
-  padding:12px;
+@media (max-width: 900px) {
+  .manager-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .manager-week {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
-.overview-metric-label{
-  font-size:11px;
-  opacity:0.75;
-  text-transform:uppercase;
-  letter-spacing:0.04em;
+.stat-card--light {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--border-soft);
 }
 
-.overview-metric-value{
-  margin-top:6px;
-  font-size:20px;
-  font-weight:800;
+.manager-table-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
 }
 
-.overview-controls{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:16px;
-  margin-top:14px;
-  flex-wrap:wrap;
+.manager-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
 }
 
-.overview-control-group{
-  display:flex;
-  gap:14px;
-  align-items:center;
-  flex-wrap:wrap;
+.manager-table th,
+.manager-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+  font-size: 13px;
 }
 
-.checkbox-row{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  font-size:13px;
+.manager-table th {
+  background: rgba(3, 105, 161, 0.08);
+  color: var(--text-main);
+  font-weight: 800;
 }
 
-.overview-select-label{
-  font-size:12px;
-  opacity:0.75;
-  margin-right:8px;
+.manager-table tr:last-child td {
+  border-bottom: none;
 }
 
-.overview-select{
-  padding:8px 10px;
-  border-radius:10px;
-  border:1px solid rgba(255,255,255,0.16);
-  background:rgba(0,0,0,0.18);
-  color:inherit;
+.manager-table .num {
+  text-align: right;
+  white-space: nowrap;
 }
 
-.overview-table-wrap{
-  overflow:auto;
-  margin-top:14px;
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:14px;
+.manager-table .mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  font-size: 12px;
 }
 
-.overview-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:640px;
+/* Make secondary buttons match "+ Add Learner" style */
+.btn-primary.btn-compact {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
-.overview-table th,
-.overview-table td{
-  padding:10px 12px;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  text-align:left;
-  font-size:13px;
+.input-compact {
+  height: 34px;
+  padding: 6px 10px;
+  font-size: 13px;
 }
-
-.overview-table th{
-  font-size:12px;
-  opacity:0.8;
-}
-
-.overview-footnote{
-  margin:10px 0 0 0;
-  font-size:12px;
-  opacity:0.75;
-}
-
-@media (max-width: 900px){
-  .overview-metrics{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
-}
-
