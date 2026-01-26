@@ -1619,14 +1619,11 @@ function ProgressTab() {
   }
 
   return (
-    <div className="grid gap-lg">
-      <section className="card card--soft">
+    <div className="grid gap-lg progress-page">
+      <section className="card card--soft card--narrow">
         <h2 className="card-title">Add New Learner</h2>
 
-        <form
-          className="add-learner-form"
-          onSubmit={(e) => e.preventDefault()}
-        >
+        <form className="add-learner-form" onSubmit={(e) => e.preventDefault()}>
           <input
             className="input-line"
             placeholder="Name"
@@ -1682,7 +1679,7 @@ function ProgressTab() {
         </form>
       </section>
 
-      <section className="card card--soft">
+      <section className="card card--soft card--wide">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
@@ -1706,137 +1703,132 @@ function ProgressTab() {
             const completedModules = learner.overall_modules_completed || 0;
             const isExpanded = expandedById[learner.id] ?? false;
 
-
             return (
-              <article className="learner-card" key={learner.id}>
-                <header className="learner-card-header">
-                  <div className="learner-meta">
+              <article className="learner-card learner-card--compact" key={learner.id}>
+                <header className="learner-row">
+                  <div className="learner-row-main">
                     <div className="avatar-circle" aria-hidden="true">
                       <UserIcon size={18} />
                     </div>
-                    <div className="learner-meta-text">
-                      <div className="learner-name">{learner.name}</div>
-                      <div className="learner-roles">
+                    <div className="learner-row-text">
+                      <span className="learner-row-name">{learner.name}</span>
+                      <span className="learner-row-sep">•</span>
+                      <span className="learner-row-roles">
                         {learner.source_role} → {learner.target_role}
-                      </div>
-                      <div className="learner-start">
-                        Starting from Week {learner.start_week}
-                      </div>
+                      </span>
+                      <span className="learner-row-sep">•</span>
+                      <span className="learner-row-start">
+                        Start W{learner.start_week}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="learner-summary">
-                    <div className="overall-label">Overall Progress</div>
-                    <div className="overall-value">{overall}%</div>
-                    <div className="overall-sub">
-                      {completedModules} / {totalModules} modules
+                  <div className="learner-row-right">
+                    <div className="learner-row-metrics">
+                      <span className="learner-row-overall">{overall}%</span>
+                      <span className="learner-row-modules">
+                        {completedModules}/{totalModules} modules
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      className="link-button"
-                      onClick={() => toggleExpanded(learner.id)}
-                    >
-                      {isExpanded ? "Collapse details" : "Expand details"}
-                    </button>
 
-                    <button
-                      type="button"
-                      className="link-button link-button-danger"
-                      onClick={() => handleDelete(learner.id)}
-                    >
-                      Delete learner
-                    </button>
+                    <div className="learner-row-actions">
+                      <button
+                        type="button"
+                        className="btn-primary btn-sm"
+                        onClick={() => toggleExpanded(learner.id)}
+                      >
+                        {isExpanded ? "Collapse details" : "Expand details"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn-danger btn-sm"
+                        onClick={() => handleDelete(learner.id)}
+                      >
+                        Delete learner
+                      </button>
+                    </div>
                   </div>
                 </header>
 
                 {isExpanded && (
-                  <>
-                <div className="progress-bar-row">
-                  <div className="progress-bar-track">
-                    <div
-                      className="progress-bar-fill"
-                      style={{ width: `${overall}%` }}
-                    />
-                  </div>
-                  <div className="progress-bar-label">
-                    {overall}% Complete
-                  </div>
-                </div>
-
-                <div className="week-progress-grid">
-                  {learner.progress.map((week) => {
-                    const status = getWeekStatus(learner, week);
-
-                    return (
-                      <div
-                        key={week.week}
-                        className={`week-progress-card ${status === "Completed"
-                          ? "week-progress-card--completed"
-                          : status === "Skipped"
-                            ? "week-progress-card--skipped"
-                            : ""
-                          }`}
-                      >
-                        <div className="week-title-row">
-                          <div className="week-label">Week {week.week}</div>
-                        </div>
-
-                        <div className="week-field">
-                          <label className="week-field-label">
-                            Modules completed
-                          </label>
-                          <div className="week-field-input-row">
-                            <input
-                              type="number"
-                              min={0}
-                              max={week.total_modules}
-                              value={week.modules_completed}
-                              onChange={(e) =>
-                                handleWeekChange(
-                                  learner.id,
-                                  week.week,
-                                  "modules_completed",
-                                  Number(e.target.value || 0)
-                                )
-                              }
-                              className="week-input"
-                            />
-                            <span className="week-field-suffix">
-                              / {week.total_modules}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="week-field">
-                          <label className="week-field-label">
-                            Assessment %
-                          </label>
-                          <div className="week-field-input-row">
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              value={week.assessment_pct}
-                              onChange={(e) =>
-                                handleWeekChange(
-                                  learner.id,
-                                  week.week,
-                                  "assessment_pct",
-                                  Number(e.target.value || 0)
-                                )
-                              }
-                              className="week-input"
-                            />
-                            <span className="week-field-suffix">%</span>
-                          </div>
-                        </div>
-
-                        <div className="week-status">{status}</div>
+                  <div className="learner-details">
+                    <div className="progress-bar-row">
+                      <div className="progress-bar-track">
+                        <div
+                          className="progress-bar-fill"
+                          style={{ width: `${overall}%` }}
+                        />
                       </div>
-                    );
-                  })}
-                </div>
-                  </>
+                      <div className="progress-bar-label">{overall}% Complete</div>
+                    </div>
+
+                    <div className="week-rows">
+                      {learner.progress.map((week) => {
+                        const status = getWeekStatus(learner, week);
+                        const statusClass =
+                          status === "Completed"
+                            ? "week-row--completed"
+                            : status === "Skipped"
+                              ? "week-row--skipped"
+                              : status === "In progress"
+                                ? "week-row--inprogress"
+                                : "week-row--notstarted";
+
+                        return (
+                          <div key={week.week} className={`week-row ${statusClass}`}>
+                            <div className="week-cell week-cell--week">
+                              Week {week.week}
+                            </div>
+
+                            <div className="week-cell week-cell--modules">
+                              <span className="week-cell-label">Modules</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={week.total_modules}
+                                value={week.modules_completed}
+                                onChange={(e) =>
+                                  handleWeekChange(
+                                    learner.id,
+                                    week.week,
+                                    "modules_completed",
+                                    Number(e.target.value || 0)
+                                  )
+                                }
+                                className="week-input week-input--compact"
+                              />
+                              <span className="week-cell-suffix">/ {week.total_modules}</span>
+                            </div>
+
+                            <div className="week-cell week-cell--assessment">
+                              <span className="week-cell-label">Assessment</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={week.assessment_pct}
+                                onChange={(e) =>
+                                  handleWeekChange(
+                                    learner.id,
+                                    week.week,
+                                    "assessment_pct",
+                                    Number(e.target.value || 0)
+                                  )
+                                }
+                                className="week-input week-input--compact"
+                              />
+                              <span className="week-cell-suffix">%</span>
+                            </div>
+
+                            <div className="week-cell week-cell--status">
+                              <span className="week-status-pill">{status}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </article>
             );
@@ -1845,6 +1837,7 @@ function ProgressTab() {
       </section>
     </div>
   );
+
 }
 
 export default App;
