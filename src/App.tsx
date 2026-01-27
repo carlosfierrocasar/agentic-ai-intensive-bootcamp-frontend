@@ -1679,7 +1679,7 @@ function ProgressTab() {
         </form>
       </section>
 
-      <section className="card card--soft card--wide">
+      <section className="card card--soft card--narrow">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
@@ -1742,7 +1742,7 @@ function ProgressTab() {
 
                       <button
                         type="button"
-                        className="btn-danger btn-sm"
+                        className="btn btn--primary btn-sm"
                         onClick={() => handleDelete(learner.id)}
                       >
                         Delete learner

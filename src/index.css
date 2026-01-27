@@ -1014,10 +1014,18 @@ body {
   align-items: center;
   gap: 10px;
   flex-wrap: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   min-width: 0;
   line-height: 1.2;
+  overflow: hidden;
+}
+
+.learner-row-text > * {
+  min-width: 0;
+}
+
+.learner-row-roles {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .learner-row-name {
@@ -1028,9 +1036,6 @@ body {
 
 .learner-row-roles,
 .learner-row-start {
-  max-width: 320px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text-muted);
   font-size: 12px;
   white-space: nowrap;
