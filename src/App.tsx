@@ -1482,7 +1482,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
       const expected = expectedProgressPctForLearner(l, currentProgramWeek);
       const actual = Number(l.overall_progress_pct || 0);
       if (actual >= expected) onTrack += 1;
-      else inProgress += 1;
+      if (actual > 0 && actual < 100) inProgress += 1;
     }
 
     rows.push({
@@ -1668,6 +1668,36 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
     }
   }
 
+  function getProgressPct(
+    progress: Array<{ week: number; modules_completed: number; total_modules: number }>,
+    programWeek: number
+  ): number {
+    const row = progress?.find((p) => p.week === programWeek);
+    if (!row) return 0;
+  
+    const total = Number(row.total_modules) || 0;
+    const done = Number(row.modules_completed) || 0;
+  
+    if (total <= 0) return 0;
+  
+    // % completado de ESA semana seleccionada (Program Week)
+    return Math.round((done / total) * 100);
+  }
+  
+  const managerRows = buildManagerRows(programWeek);
+  const totalLearners = learners.length;
+  const avgProgressPct = totalLearners
+    ? Math.round(
+        learners.reduce((sum, l) => sum + getProgressPct(l.progress, programWeek), 0) /
+          totalLearners
+      )
+    : 0;
+    const onTrackCount = managerRows[0]?.onTrack ?? 0;
+  const inProgressCount = learners.filter((l) => {
+    const pct = getProgressPct(l.progress, programWeek);
+    return pct > 0 && pct < 100;
+  }).length;
+
   return (
     <div className="grid gap-lg">
 
@@ -1682,7 +1712,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
       </div>
       <button
         type="button"
-        className="btn-primary btn-compact manager-hide-btn"
+        className="btn-primary btn-compact"
         onClick={() => setShowManagerOverview(false)}
       >
         Hide Overview
@@ -1752,7 +1782,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
         </div>
       </div>
       <div className="stat-card stat-card--light">
-        <div className="muted">At risk</div>
+        <div className="muted">In progress</div>
         <div className="stat-value">
           {buildManagerRows(programWeek).reduce((a, r) => a + r.inProgress, 0)}
         </div>
@@ -1767,11 +1797,11 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
             <th className="num">Learners</th>
             <th className="num">Avg Progress</th>
             <th className="num">On Track</th>
-            <th className="num">In Progress</th>
+            <th className="num">At Risk</th>
           </tr>
         </thead>
         <tbody>
-          {buildManagerRows(programWeek).map((row) => (
+          {managerRows.map((row) => (
             <tr key={row.groupLabel}>
               <td className="mono">{row.groupLabel}</td>
               <td className="num">{row.count}</td>
@@ -1803,7 +1833,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
   </div>
 )}
 
-      <section className="card card--soft">
+      <section className="card card--soft progress-narrow">
         <h2 className="card-title">Add New Learner</h2>
 
         <form
