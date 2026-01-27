@@ -1416,33 +1416,6 @@ const DEFAULT_FORM: NewLearnerForm = {
   start_week: 1,
 };
 
-function UserIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M20 21a8 8 0 0 0-16 0"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function ProgressTab() {
   const [learners, setLearners] = useState<Learner[]>([]);
   const [form, setForm] = useState<NewLearnerForm>(DEFAULT_FORM);
@@ -1922,7 +1895,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
                 <header className="learner-card-header">
                   <div className="learner-meta">
                     <div className="avatar-circle" aria-hidden="true">
-                      <UserIcon size={18} />
+                      <span className="avatar-glyph">👤</span>
                     </div>
                     <div className="learner-meta-text">
                       <div className="learner-name">{learner.name}</div>
@@ -1943,7 +1916,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
                     </div>
                     <button
                       type="button"
-                      className="link-button"
+                      className="btn btn-primary btn-small"
                       onClick={() => toggleExpanded(learner.id)}
                     >
                       {isExpanded ? "Collapse details" : "Expand details"}
@@ -1951,7 +1924,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
 
                     <button
                       type="button"
-                      className="link-button link-button-danger"
+                      className="btn btn-primary btn-small"
                       onClick={() => handleDelete(learner.id)}
                     >
                       Delete learner
