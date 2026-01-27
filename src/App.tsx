@@ -1416,39 +1416,89 @@ const DEFAULT_FORM: NewLearnerForm = {
   start_week: 1,
 };
 
-function UserIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M20 21a8 8 0 0 0-16 0"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function ProgressTab() {
   const [learners, setLearners] = useState<Learner[]>([]);
   const [form, setForm] = useState<NewLearnerForm>(DEFAULT_FORM);
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [expandedById, setExpandedById] = useState<Record<number, boolean>>({});
+
+// Manager reporting (basic)
+const [showManagerOverview, setShowManagerOverview] = useState(true);
+const [breakdownByTargetRole, setBreakdownByTargetRole] = useState(true);
+const [breakdownByStartWeek, setBreakdownByStartWeek] = useState(false);
+const [programWeek, setProgramWeek] = useState<number>(1);
+
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function expectedProgressPctForLearner(l: Learner, currentProgramWeek: number) {
+  // Simple expectation: each program week ~ 1/7 of the journey from the learner's start week.
+  // If learner hasn't started yet (programWeek < start_week), expectation is 0%.
+  const weeksIntoProgram = currentProgramWeek - (l.start_week || 1) + 1;
+  if (weeksIntoProgram <= 0) return 0;
+  return clamp((weeksIntoProgram / 7) * 100, 0, 100);
+}
+
+type ManagerRow = {
+  groupLabel: string;
+  count: number;
+  avgProgress: number; // 0-100
+  onTrack: number;
+  atRisk: number;
+};
+
+function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
+  const useTarget = breakdownByTargetRole;
+  const useStart = breakdownByStartWeek;
+
+  const keyFor = (l: Learner) => {
+    const parts: string[] = [];
+    if (useTarget) parts.push(`target_role=${l.target_role || "N/A"}`);
+    if (useStart) parts.push(`start_week=${l.start_week || "N/A"}`);
+    return parts.length ? parts.join(" | ") : "All learners";
+  };
+
+  const map = new Map<string, Learner[]>();
+  for (const l of learners) {
+    const k = keyFor(l);
+    const arr = map.get(k) || [];
+    arr.push(l);
+    map.set(k, arr);
+  }
+
+  const rows: ManagerRow[] = [];
+  for (const [k, arr] of map.entries()) {
+    const progresses = arr.map((l) => Number(l.overall_progress_pct || 0));
+    const avg =
+      progresses.length === 0
+        ? 0
+        : progresses.reduce((a, b) => a + b, 0) / progresses.length;
+
+    let onTrack = 0;
+    let atRisk = 0;
+    for (const l of arr) {
+      const expected = expectedProgressPctForLearner(l, currentProgramWeek);
+      const actual = Number(l.overall_progress_pct || 0);
+      if (actual >= expected) onTrack += 1;
+      else atRisk += 1;
+    }
+
+    rows.push({
+      groupLabel: k,
+      count: arr.length,
+      avgProgress: Math.round(avg),
+      onTrack,
+      atRisk,
+    });
+  }
+
+  // stable ordering: biggest groups first, then label
+  rows.sort((a, b) => b.count - a.count || a.groupLabel.localeCompare(b.groupLabel));
+  return rows;
+}
+
 
   function toggleExpanded(learnerId: number) {
     setExpandedById((prev) => ({ ...prev, [learnerId]: !prev[learnerId] }));
@@ -1619,11 +1669,147 @@ function ProgressTab() {
   }
 
   return (
-    <div className="grid gap-lg progress-page">
-      <section className="card card--soft card--narrow">
+    <div className="grid gap-lg">
+
+{showManagerOverview && (
+  <section className="card card--soft progress-narrow">
+    <div className="manager-header">
+      <div>
+        <h2 className="card-title">Progress Overview</h2>
+        <p className="card-subtitle">
+          Quick summary for managers. Choose what to break down by.
+        </p>
+      </div>
+      <button
+        type="button"
+        className="btn-primary btn-compact"
+        onClick={() => setShowManagerOverview(false)}
+      >
+        Hide Overview
+      </button>
+    </div>
+
+    <div className="manager-controls">
+      <label className="chk">
+        <input
+          type="checkbox"
+          checked={breakdownByTargetRole}
+          onChange={(e) => setBreakdownByTargetRole(e.target.checked)}
+        />
+        Target Role
+      </label>
+
+      <label className="chk">
+        <input
+          type="checkbox"
+          checked={breakdownByStartWeek}
+          onChange={(e) => setBreakdownByStartWeek(e.target.checked)}
+        />
+        Start Week
+      </label>
+
+      <div className="manager-week">
+        <span className="muted">Program Week</span>
+        <select
+          className="input-line input-compact"
+          value={programWeek}
+          onChange={(e) => setProgramWeek(Number(e.target.value))}
+        >
+          <option value={1}>Week 1</option>
+          <option value={2}>Week 2</option>
+          <option value={3}>Week 3</option>
+          <option value={4}>Week 4</option>
+          <option value={5}>Week 5</option>
+          <option value={6}>Week 6</option>
+          <option value={7}>Week 7</option>
+        </select>
+      </div>
+    </div>
+
+    <div className="manager-grid">
+      <div className="stat-card stat-card--light">
+        <div className="muted">Total learners</div>
+        <div className="stat-value">{learners.length}</div>
+      </div>
+      <div className="stat-card stat-card--light">
+        <div className="muted">Average progress</div>
+        <div className="stat-value">
+          {learners.length
+            ? Math.round(
+                learners.reduce(
+                  (a, l) => a + Number(l.overall_progress_pct || 0),
+                  0
+                ) / learners.length
+              )
+            : 0}
+          %
+        </div>
+      </div>
+      <div className="stat-card stat-card--light">
+        <div className="muted">On track</div>
+        <div className="stat-value">
+          {buildManagerRows(programWeek).reduce((a, r) => a + r.onTrack, 0)}
+        </div>
+      </div>
+      <div className="stat-card stat-card--light">
+        <div className="muted">At risk</div>
+        <div className="stat-value">
+          {buildManagerRows(programWeek).reduce((a, r) => a + r.atRisk, 0)}
+        </div>
+      </div>
+    </div>
+
+    <div className="manager-table-wrap">
+      <table className="manager-table">
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th className="num">Learners</th>
+            <th className="num">Avg Progress</th>
+            <th className="num">On Track</th>
+            <th className="num">At Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          {buildManagerRows(programWeek).map((row) => (
+            <tr key={row.groupLabel}>
+              <td className="mono">{row.groupLabel}</td>
+              <td className="num">{row.count}</td>
+              <td className="num">{row.avgProgress}%</td>
+              <td className="num">{row.onTrack}</td>
+              <td className="num">{row.atRisk}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <p className="muted small">
+      On Track = progress at or above expected pace based on Program Week and
+      Start Week.
+    </p>
+  </section>
+)}
+
+{!showManagerOverview && (
+  <div className="progress-narrow">
+    <button
+      type="button"
+      className="btn-primary btn-compact"
+      onClick={() => setShowManagerOverview(true)}
+    >
+      Show Overview
+    </button>
+  </div>
+)}
+
+      <section className="card card--soft">
         <h2 className="card-title">Add New Learner</h2>
 
-        <form className="add-learner-form" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="add-learner-form"
+          onSubmit={(e) => e.preventDefault()}
+        >
           <input
             className="input-line"
             placeholder="Name"
@@ -1679,7 +1865,7 @@ function ProgressTab() {
         </form>
       </section>
 
-      <section className="card card--soft card--narrow">
+      <section className="card card--soft progress-narrow">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
@@ -1703,132 +1889,137 @@ function ProgressTab() {
             const completedModules = learner.overall_modules_completed || 0;
             const isExpanded = expandedById[learner.id] ?? false;
 
+
             return (
-              <article className="learner-card learner-card--compact" key={learner.id}>
-                <header className="learner-row">
-                  <div className="learner-row-main">
+              <article className="learner-card" key={learner.id}>
+                <header className="learner-card-header">
+                  <div className="learner-meta">
                     <div className="avatar-circle" aria-hidden="true">
-                      <UserIcon size={18} />
+                      <span className="avatar-glyph">👤</span>
                     </div>
-                    <div className="learner-row-text">
-                      <span className="learner-row-name">{learner.name}</span>
-                      <span className="learner-row-sep">•</span>
-                      <span className="learner-row-roles">
+                    <div className="learner-meta-text">
+                      <div className="learner-name">{learner.name}</div>
+                      <div className="learner-roles">
                         {learner.source_role} → {learner.target_role}
-                      </span>
-                      <span className="learner-row-sep">•</span>
-                      <span className="learner-row-start">
-                        Start W{learner.start_week}
-                      </span>
+                      </div>
+                      <div className="learner-start">
+                        Starting from Week {learner.start_week}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="learner-row-right">
-                    <div className="learner-row-metrics">
-                      <span className="learner-row-overall">{overall}%</span>
-                      <span className="learner-row-modules">
-                        {completedModules}/{totalModules} modules
-                      </span>
+                  <div className="learner-summary">
+                    <div className="overall-label">Overall Progress</div>
+                    <div className="overall-value">{overall}%</div>
+                    <div className="overall-sub">
+                      {completedModules} / {totalModules} modules
                     </div>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-small"
+                      onClick={() => toggleExpanded(learner.id)}
+                    >
+                      {isExpanded ? "Collapse details" : "Expand details"}
+                    </button>
 
-                    <div className="learner-row-actions">
-                      <button
-                        type="button"
-                        className="btn-primary btn-sm"
-                        onClick={() => toggleExpanded(learner.id)}
-                      >
-                        {isExpanded ? "Collapse details" : "Expand details"}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn btn--primary btn-sm"
-                        onClick={() => handleDelete(learner.id)}
-                      >
-                        Delete learner
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-small"
+                      onClick={() => handleDelete(learner.id)}
+                    >
+                      Delete learner
+                    </button>
                   </div>
                 </header>
 
                 {isExpanded && (
-                  <div className="learner-details">
-                    <div className="progress-bar-row">
-                      <div className="progress-bar-track">
-                        <div
-                          className="progress-bar-fill"
-                          style={{ width: `${overall}%` }}
-                        />
-                      </div>
-                      <div className="progress-bar-label">{overall}% Complete</div>
-                    </div>
-
-                    <div className="week-rows">
-                      {learner.progress.map((week) => {
-                        const status = getWeekStatus(learner, week);
-                        const statusClass =
-                          status === "Completed"
-                            ? "week-row--completed"
-                            : status === "Skipped"
-                              ? "week-row--skipped"
-                              : status === "In progress"
-                                ? "week-row--inprogress"
-                                : "week-row--notstarted";
-
-                        return (
-                          <div key={week.week} className={`week-row ${statusClass}`}>
-                            <div className="week-cell week-cell--week">
-                              Week {week.week}
-                            </div>
-
-                            <div className="week-cell week-cell--modules">
-                              <span className="week-cell-label">Modules</span>
-                              <input
-                                type="number"
-                                min={0}
-                                max={week.total_modules}
-                                value={week.modules_completed}
-                                onChange={(e) =>
-                                  handleWeekChange(
-                                    learner.id,
-                                    week.week,
-                                    "modules_completed",
-                                    Number(e.target.value || 0)
-                                  )
-                                }
-                                className="week-input week-input--compact"
-                              />
-                              <span className="week-cell-suffix">/ {week.total_modules}</span>
-                            </div>
-
-                            <div className="week-cell week-cell--assessment">
-                              <span className="week-cell-label">Assessment</span>
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={week.assessment_pct}
-                                onChange={(e) =>
-                                  handleWeekChange(
-                                    learner.id,
-                                    week.week,
-                                    "assessment_pct",
-                                    Number(e.target.value || 0)
-                                  )
-                                }
-                                className="week-input week-input--compact"
-                              />
-                              <span className="week-cell-suffix">%</span>
-                            </div>
-
-                            <div className="week-cell week-cell--status">
-                              <span className="week-status-pill">{status}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                  <>
+                <div className="progress-bar-row">
+                  <div className="progress-bar-track">
+                    <div
+                      className="progress-bar-fill"
+                      style={{ width: `${overall}%` }}
+                    />
                   </div>
+                  <div className="progress-bar-label">
+                    {overall}% Complete
+                  </div>
+                </div>
+
+                <div className="week-progress-grid">
+                  {learner.progress.map((week) => {
+                    const status = getWeekStatus(learner, week);
+
+                    return (
+                      <div
+                        key={week.week}
+                        className={`week-progress-card ${status === "Completed"
+                          ? "week-progress-card--completed"
+                          : status === "Skipped"
+                            ? "week-progress-card--skipped"
+                            : ""
+                          }`}
+                      >
+                        <div className="week-title-row">
+                          <div className="week-label">Week {week.week}</div>
+                        </div>
+
+                        <div className="week-field">
+                          <label className="week-field-label">
+                            Modules completed
+                          </label>
+                          <div className="week-field-input-row">
+                            <input
+                              type="number"
+                              min={0}
+                              max={week.total_modules}
+                              value={week.modules_completed}
+                              onChange={(e) =>
+                                handleWeekChange(
+                                  learner.id,
+                                  week.week,
+                                  "modules_completed",
+                                  Number(e.target.value || 0)
+                                )
+                              }
+                              className="week-input"
+                            />
+                            <span className="week-field-suffix">
+                              / {week.total_modules}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="week-field">
+                          <label className="week-field-label">
+                            Assessment %
+                          </label>
+                          <div className="week-field-input-row">
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={week.assessment_pct}
+                              onChange={(e) =>
+                                handleWeekChange(
+                                  learner.id,
+                                  week.week,
+                                  "assessment_pct",
+                                  Number(e.target.value || 0)
+                                )
+                              }
+                              className="week-input"
+                            />
+                            <span className="week-field-suffix">%</span>
+                          </div>
+                        </div>
+
+                        <div className="week-status">{status}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                  </>
                 )}
               </article>
             );
@@ -1837,7 +2028,6 @@ function ProgressTab() {
       </section>
     </div>
   );
-
 }
 
 export default App;
