@@ -1446,7 +1446,7 @@ type ManagerRow = {
   count: number;
   avgProgress: number; // 0-100
   onTrack: number;
-  atRisk: number;
+  inProgress: number;
 };
 
 function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
@@ -1477,12 +1477,12 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
         : progresses.reduce((a, b) => a + b, 0) / progresses.length;
 
     let onTrack = 0;
-    let atRisk = 0;
+    let inProgress = 0;
     for (const l of arr) {
       const expected = expectedProgressPctForLearner(l, currentProgramWeek);
       const actual = Number(l.overall_progress_pct || 0);
       if (actual >= expected) onTrack += 1;
-      else atRisk += 1;
+      else inProgress += 1;
     }
 
     rows.push({
@@ -1490,7 +1490,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
       count: arr.length,
       avgProgress: Math.round(avg),
       onTrack,
-      atRisk,
+      inProgress,
     });
   }
 
@@ -1682,7 +1682,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
       </div>
       <button
         type="button"
-        className="btn-primary btn-compact"
+        className="btn-primary btn-compact manager-hide-btn"
         onClick={() => setShowManagerOverview(false)}
       >
         Hide Overview
@@ -1754,7 +1754,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
       <div className="stat-card stat-card--light">
         <div className="muted">At risk</div>
         <div className="stat-value">
-          {buildManagerRows(programWeek).reduce((a, r) => a + r.atRisk, 0)}
+          {buildManagerRows(programWeek).reduce((a, r) => a + r.inProgress, 0)}
         </div>
       </div>
     </div>
@@ -1767,7 +1767,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
             <th className="num">Learners</th>
             <th className="num">Avg Progress</th>
             <th className="num">On Track</th>
-            <th className="num">At Risk</th>
+            <th className="num">In Progress</th>
           </tr>
         </thead>
         <tbody>
@@ -1777,7 +1777,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
               <td className="num">{row.count}</td>
               <td className="num">{row.avgProgress}%</td>
               <td className="num">{row.onTrack}</td>
-              <td className="num">{row.atRisk}</td>
+              <td className="num">{row.inProgress}</td>
             </tr>
           ))}
         </tbody>
