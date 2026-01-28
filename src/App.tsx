@@ -1720,18 +1720,16 @@ function ProgressTab() {
 
       {showOverview && (
         <section className="card card--soft progress-narrow">
-          <div className="manager-topbar">
-            <button
-              type="button"
-              className="btn-primary btn-compact"
-              onClick={() => setShowOverview(false)}
-            >
-              Hide Overview
-            </button>
-          </div>
-
           <div className="manager-header">
             <div>
+              <button
+                type="button"
+                className="btn-primary btn-compact manager-hidebtn"
+                onClick={() => setShowOverview(false)}
+              >
+                Hide Overview
+              </button>
+
               <h2 className="card-title">Progress Overview</h2>
               <p className="card-subtitle">
                 Quick summary for managers. Choose what to break down by.
