@@ -1072,11 +1072,17 @@ body {
 /* ---------- Progress Overview: global + weekly split ---------- */
 .progress-overview-cards{
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin: 10px 0 12px;
 }
 
+
+@media (max-width: 900px){
+  .progress-overview-cards{
+    grid-template-columns: 1fr;
+  }
+}
 .overview-subcard{
   border: 1px solid rgba(0,0,0,0.08);
   border-radius: 14px;
@@ -1135,4 +1141,21 @@ body {
 
 .check--small input{
   transform: scale(0.95);
+}
+
+
+/* Progress Overview: 2-card row header helpers */
+.subcard-header--row{
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.field-inline--compact{
+  gap: 8px;
+}
+
+.field-inline--compact .input{
+  min-width: 140px;
 }

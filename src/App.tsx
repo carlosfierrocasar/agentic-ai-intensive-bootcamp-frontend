@@ -1778,7 +1778,7 @@ const behindGlobal = learners.filter((l) => {
     <div className="grid gap-lg">
 
       {showOverview && (
-  <section className="card card--soft progress-narrow">
+  <section className="card card--soft">
     <div className="manager-topbar">
       <button
         type="button"
@@ -1815,23 +1815,6 @@ const behindGlobal = learners.filter((l) => {
           onChange={(e) => setBreakByStartWeek(e.target.checked)}
         />
         <span>Start Week</span>
-      </label>
-
-      <div className="spacer" />
-
-      <label className="field-inline">
-        <span className="field-inline__label">Program Week</span>
-        <select
-          className="input"
-          value={programWeek}
-          onChange={(e) => setProgramWeek(Number(e.target.value))}
-        >
-          {[1, 2, 3, 4, 5, 6, 7].map((w) => (
-            <option key={w} value={w}>
-              Week {w}
-            </option>
-          ))}
-        </select>
       </label>
     </div>
 
@@ -1877,9 +1860,26 @@ const behindGlobal = learners.filter((l) => {
       </div>
 
       <div className="overview-subcard">
-        <div className="subcard-header">
-          <div className="subcard-title">Weekly Pace (Program Week {programWeek})</div>
-          <div className="subcard-subtitle">Compares each learner’s overall progress vs expected pace based on Start Week</div>
+        <div className="subcard-header subcard-header--row">
+          <div>
+            <div className="subcard-title">Weekly Pace (W{programWeek})</div>
+            <div className="subcard-subtitle">Compares overall progress vs expected pace based on Start Week</div>
+          </div>
+
+          <label className="field-inline field-inline--compact">
+            <span className="field-inline__label">Program Week</span>
+            <select
+              className="input"
+              value={programWeek}
+              onChange={(e) => setProgramWeek(Number(e.target.value))}
+            >
+              {[1, 2, 3, 4, 5, 6, 7].map((w) => (
+                <option key={w} value={w}>
+                  Week {w}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div className="metric-row">
@@ -1979,7 +1979,7 @@ const behindGlobal = learners.filter((l) => {
 )}
 
 {!showOverview && (
-        <div className="progress-narrow manager-showwrap">
+        <div className="manager-showwrap">
           <button
             type="button"
             className="btn-primary btn-compact"
