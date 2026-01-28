@@ -1453,7 +1453,8 @@ function ProgressTab() {
 
   // ---------- Manager Overview (Progress Tracking) ----------
   type ManagerRow = {
-    groupLabel: string;
+    targetRoleLabel: string;
+    startWeekLabel: string;
     learnersCount: number;
     avgProgressPct: number;
     onTrack: number;
@@ -1488,16 +1489,33 @@ function ProgressTab() {
   };
 
   const buildManagerRows = (pw: number): ManagerRow[] => {
-    const groups = new Map<string, { label: string; learners: Learner[] }>();
+    const groups = new Map<
+      string,
+      { targetRoleLabel: string; startWeekLabel: string; learners: Learner[] }
+    >();
 
     learners.forEach((l) => {
-      const parts: string[] = [];
-      if (breakByTargetRole) parts.push(`target_role=${l.target_role}`);
-      if (breakByStartWeek) parts.push(`start_week=${l.start_week}`);
-      const key = parts.length ? parts.join(" | ") : "All learners";
-      const label = parts.length ? parts.join(" | ") : "All learners";
+      const keyParts: string[] = [];
 
-      if (!groups.has(key)) groups.set(key, { label, learners: [] });
+      let targetRoleLabel = "All";
+      let startWeekLabel = "All";
+
+      if (breakByTargetRole) {
+        targetRoleLabel = l.target_role || "Unknown";
+        keyParts.push(`tr=${targetRoleLabel}`);
+      }
+
+      if (breakByStartWeek) {
+        const sw = Number(l.start_week || 1);
+        startWeekLabel = `Week ${sw}`;
+        keyParts.push(`sw=${sw}`);
+      }
+
+      const key = keyParts.length ? keyParts.join("|") : "all";
+
+      if (!groups.has(key)) {
+        groups.set(key, { targetRoleLabel, startWeekLabel, learners: [] });
+      }
       groups.get(key)!.learners.push(l);
     });
 
@@ -1519,7 +1537,8 @@ function ProgressTab() {
       }).length;
 
       rows.push({
-        groupLabel: g.label,
+        targetRoleLabel: g.targetRoleLabel,
+        startWeekLabel: g.startWeekLabel,
         learnersCount: count,
         avgProgressPct: avg,
         onTrack,
@@ -1527,11 +1546,10 @@ function ProgressTab() {
       });
     });
 
-    // Stable sorting: keep "All learners" on top, then alphabetical.
     rows.sort((a, b) => {
-      if (a.groupLabel === "All learners") return -1;
-      if (b.groupLabel === "All learners") return 1;
-      return a.groupLabel.localeCompare(b.groupLabel);
+      const aKey = `${a.targetRoleLabel}__${a.startWeekLabel}`;
+      const bKey = `${b.targetRoleLabel}__${b.startWeekLabel}`;
+      return aKey.localeCompare(bKey);
     });
 
     return rows;
@@ -1800,7 +1818,8 @@ function ProgressTab() {
             <table className="manager-table">
               <thead>
                 <tr>
-                  <th className="manager-th">Group</th>
+                  <th className="manager-th">Target Role</th>
+                  <th className="manager-th">Start Week</th>
                   <th className="manager-th">Learners</th>
                   <th className="manager-th">Avg Progress</th>
                   <th className="manager-th">On Track</th>
@@ -1809,8 +1828,9 @@ function ProgressTab() {
               </thead>
               <tbody>
                 {managerRows.map((r) => (
-                  <tr key={r.groupLabel}>
-                    <td className="manager-td">{r.groupLabel}</td>
+                  <tr key={`${r.targetRoleLabel}|${r.startWeekLabel}`}>
+                    <td className="manager-td">{r.targetRoleLabel}</td>
+                    <td className="manager-td">{r.startWeekLabel}</td>
                     <td className="manager-td">{r.learnersCount}</td>
                     <td className="manager-td">{r.avgProgressPct}%</td>
                     <td className="manager-td">{r.onTrack}</td>

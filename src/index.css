@@ -964,6 +964,19 @@ body {
   justify-content:flex-start;
 }
 
+/* Make the Progress Overview card half-width and left-aligned on desktop */
+.progress-narrow{
+  width: min(720px, 52vw);
+  margin-left: 0;
+  margin-right: auto;
+}
+
+@media (max-width: 900px){
+  .progress-narrow{
+    width: 100%;
+  }
+}
+
 .spacer{ flex: 1 1 auto; }
 
 .field-inline{
