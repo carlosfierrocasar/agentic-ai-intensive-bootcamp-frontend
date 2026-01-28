@@ -944,6 +944,32 @@ body {
 }
 
 /* ---------- Progress Tracking: Manager Overview (narrow + clean) ---------- */
+/* Constrain the manager overview to ~half screen on desktop */
+.progress-narrow{
+  width: min(52vw, 760px);
+  max-width: 760px;
+  margin-right: auto; /* keep it left-aligned */
+}
+
+@media (max-width: 900px){
+  .progress-narrow{
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* Compact action buttons used in the overview header */
+.btn-compact{
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+.manager-hidebtn{
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .manager-topbar{
   display:flex;
   justify-content:flex-start;
@@ -962,19 +988,6 @@ body {
 .manager-showwrap{
   display:flex;
   justify-content:flex-start;
-}
-
-/* Make the Progress Overview card half-width and left-aligned on desktop */
-.progress-narrow{
-  width: min(720px, 52vw);
-  margin-left: 0;
-  margin-right: auto;
-}
-
-@media (max-width: 900px){
-  .progress-narrow{
-    width: 100%;
-  }
 }
 
 .spacer{ flex: 1 1 auto; }
@@ -1016,7 +1029,7 @@ body {
 }
 
 .metric-number{
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   margin-top: 6px;
 }
@@ -1055,3 +1068,71 @@ body {
   border-left: 1px solid rgba(0,0,0,0.10);
 }
 /* ------------------------------------------------------------------------ */
+
+/* ---------- Progress Overview: global + weekly split ---------- */
+.progress-overview-cards{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 10px 0 12px;
+}
+
+.overview-subcard{
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.45);
+}
+
+.subcard-header{
+  display:flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.subcard-title{
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.subcard-subtitle{
+  font-size: 12px;
+  opacity: .8;
+}
+
+.metric-row{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.metric-card--tight{
+  padding: 10px 12px;
+}
+
+.metric-number--lg{
+  font-size: 28px;
+}
+
+.column-toggles{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  margin: 10px 0 12px;
+}
+
+.column-toggles__label{
+  font-size: 12px;
+  opacity: .8;
+  margin-right: 6px;
+}
+
+.check--small{
+  font-size: 12px;
+}
+
+.check--small input{
+  transform: scale(0.95);
+}
