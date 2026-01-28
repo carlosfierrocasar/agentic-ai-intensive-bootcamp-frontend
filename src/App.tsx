@@ -1416,6 +1416,33 @@ const DEFAULT_FORM: NewLearnerForm = {
   start_week: 1,
 };
 
+function UserIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M20 21a8 8 0 0 0-16 0"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ProgressTab() {
   const [learners, setLearners] = useState<Learner[]>([]);
   const [form, setForm] = useState<NewLearnerForm>(DEFAULT_FORM);
@@ -1423,82 +1450,102 @@ function ProgressTab() {
   const [isAdding, setIsAdding] = useState(false);
   const [expandedById, setExpandedById] = useState<Record<number, boolean>>({});
 
-// Manager reporting (basic)
-const [showManagerOverview, setShowManagerOverview] = useState(true);
-const [breakdownByTargetRole, setBreakdownByTargetRole] = useState(true);
-const [breakdownByStartWeek, setBreakdownByStartWeek] = useState(false);
-const [programWeek, setProgramWeek] = useState<number>(1);
 
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
-function expectedProgressPctForLearner(l: Learner, currentProgramWeek: number) {
-  // Simple expectation: each program week ~ 1/7 of the journey from the learner's start week.
-  // If learner hasn't started yet (programWeek < start_week), expectation is 0%.
-  const weeksIntoProgram = currentProgramWeek - (l.start_week || 1) + 1;
-  if (weeksIntoProgram <= 0) return 0;
-  return clamp((weeksIntoProgram / 7) * 100, 0, 100);
-}
-
-type ManagerRow = {
-  groupLabel: string;
-  count: number;
-  avgProgress: number; // 0-100
-  onTrack: number;
-  inProgress: number;
-};
-
-function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
-  const useTarget = breakdownByTargetRole;
-  const useStart = breakdownByStartWeek;
-
-  const keyFor = (l: Learner) => {
-    const parts: string[] = [];
-    if (useTarget) parts.push(`target_role=${l.target_role || "N/A"}`);
-    if (useStart) parts.push(`start_week=${l.start_week || "N/A"}`);
-    return parts.length ? parts.join(" | ") : "All learners";
+  // ---------- Manager Overview (Progress Tracking) ----------
+  type ManagerRow = {
+    groupLabel: string;
+    learnersCount: number;
+    avgProgressPct: number;
+    onTrack: number;
+    inProgress: number;
   };
 
-  const map = new Map<string, Learner[]>();
-  for (const l of learners) {
-    const k = keyFor(l);
-    const arr = map.get(k) || [];
-    arr.push(l);
-    map.set(k, arr);
-  }
+  const [showOverview, setShowOverview] = useState(true);
+  const [breakByTargetRole, setBreakByTargetRole] = useState(true);
+  const [breakByStartWeek, setBreakByStartWeek] = useState(false);
+  const [programWeek, setProgramWeek] = useState<number>(1);
 
-  const rows: ManagerRow[] = [];
-  for (const [k, arr] of map.entries()) {
-    const progresses = arr.map((l) => Number(l.overall_progress_pct || 0));
-    const avg =
-      progresses.length === 0
-        ? 0
-        : progresses.reduce((a, b) => a + b, 0) / progresses.length;
+  const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-    let onTrack = 0;
-    let inProgress = 0;
-    for (const l of arr) {
-      const expected = expectedProgressPctForLearner(l, currentProgramWeek);
-      const actual = Number(l.overall_progress_pct || 0);
-      if (actual >= expected) onTrack += 1;
-      if (actual > 0 && actual < 100) inProgress += 1;
-    }
+  const getOverallProgressPct = (p: Learner["progress"]) => {
+    const totals = (p || []).reduce(
+      (acc, w) => {
+        acc.done += Number(w.modules_completed || 0);
+        acc.total += Number(w.total_modules || 0);
+        return acc;
+      },
+      { done: 0, total: 0 }
+    );
+    if (!totals.total) return 0;
+    return Math.round((totals.done / totals.total) * 100);
+  };
 
-    rows.push({
-      groupLabel: k,
-      count: arr.length,
-      avgProgress: Math.round(avg),
-      onTrack,
-      inProgress,
+  const getExpectedPct = (startWeek: number, pw: number) => {
+    // Expected pace: by Program Week relative to the learner Start Week over a 7-week program.
+    const relative = pw - startWeek + 1;
+    const raw = (relative / 7) * 100;
+    return clamp(Math.round(raw), 0, 100);
+  };
+
+  const buildManagerRows = (pw: number): ManagerRow[] => {
+    const groups = new Map<string, { label: string; learners: Learner[] }>();
+
+    learners.forEach((l) => {
+      const parts: string[] = [];
+      if (breakByTargetRole) parts.push(`target_role=${l.target_role}`);
+      if (breakByStartWeek) parts.push(`start_week=${l.start_week}`);
+      const key = parts.length ? parts.join(" | ") : "All learners";
+      const label = parts.length ? parts.join(" | ") : "All learners";
+
+      if (!groups.has(key)) groups.set(key, { label, learners: [] });
+      groups.get(key)!.learners.push(l);
     });
-  }
 
-  // stable ordering: biggest groups first, then label
-  rows.sort((a, b) => b.count - a.count || a.groupLabel.localeCompare(b.groupLabel));
-  return rows;
-}
+    const rows: ManagerRow[] = [];
+    groups.forEach((g) => {
+      const count = g.learners.length;
+      const overallPcts = g.learners.map((l) => getOverallProgressPct(l.progress));
+      const avg = count ? Math.round(overallPcts.reduce((a, b) => a + b, 0) / count) : 0;
 
+      const onTrack = g.learners.filter((l) => {
+        const pct = getOverallProgressPct(l.progress);
+        const expected = getExpectedPct(Number(l.start_week || 1), pw);
+        return pct >= expected;
+      }).length;
+
+      const inProgress = g.learners.filter((l) => {
+        const pct = getOverallProgressPct(l.progress);
+        return pct > 0 && pct < 100;
+      }).length;
+
+      rows.push({
+        groupLabel: g.label,
+        learnersCount: count,
+        avgProgressPct: avg,
+        onTrack,
+        inProgress,
+      });
+    });
+
+    // Stable sorting: keep "All learners" on top, then alphabetical.
+    rows.sort((a, b) => {
+      if (a.groupLabel === "All learners") return -1;
+      if (b.groupLabel === "All learners") return 1;
+      return a.groupLabel.localeCompare(b.groupLabel);
+    });
+
+    return rows;
+  };
+
+  const managerRows = buildManagerRows(programWeek);
+  const totalLearners = learners.length;
+  const avgProgressPct = totalLearners
+    ? Math.round(learners.reduce((sum, l) => sum + getOverallProgressPct(l.progress), 0) / totalLearners)
+    : 0;
+
+  const onTrackCount = managerRows[0]?.onTrack ?? 0;
+  const inProgressCount = managerRows[0]?.inProgress ?? 0;
+  // ----------------------------------------------------------
 
   function toggleExpanded(learnerId: number) {
     setExpandedById((prev) => ({ ...prev, [learnerId]: !prev[learnerId] }));
@@ -1668,172 +1715,133 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
     }
   }
 
-  function getProgressPct(
-    progress: Array<{ week: number; modules_completed: number; total_modules: number }>,
-    programWeek: number
-  ): number {
-    const row = progress?.find((p) => p.week === programWeek);
-    if (!row) return 0;
-  
-    const total = Number(row.total_modules) || 0;
-    const done = Number(row.modules_completed) || 0;
-  
-    if (total <= 0) return 0;
-  
-    // % completado de ESA semana seleccionada (Program Week)
-    return Math.round((done / total) * 100);
-  }
-  
-  const managerRows = buildManagerRows(programWeek);
-  const totalLearners = learners.length;
-  const avgProgressPct = totalLearners
-    ? Math.round(
-        learners.reduce((sum, l) => sum + getProgressPct(l.progress, programWeek), 0) /
-          totalLearners
-      )
-    : 0;
-    const onTrackCount = managerRows[0]?.onTrack ?? 0;
-  const inProgressCount = learners.filter((l) => {
-    const pct = getProgressPct(l.progress, programWeek);
-    return pct > 0 && pct < 100;
-  }).length;
-
   return (
     <div className="grid gap-lg">
 
-{showManagerOverview && (
-  <section className="card card--soft progress-narrow">
-    <div className="manager-header">
-      <div>
-        <h2 className="card-title">Progress Overview</h2>
-        <p className="card-subtitle">
-          Quick summary for managers. Choose what to break down by.
-        </p>
-      </div>
-      <button
-        type="button"
-        className="btn-primary btn-compact"
-        onClick={() => setShowManagerOverview(false)}
-      >
-        Hide Overview
-      </button>
-    </div>
+      {showOverview && (
+        <section className="card card--soft progress-narrow">
+          <div className="manager-topbar">
+            <button
+              type="button"
+              className="btn-primary btn-compact"
+              onClick={() => setShowOverview(false)}
+            >
+              Hide Overview
+            </button>
+          </div>
 
-    <div className="manager-controls">
-      <label className="chk">
-        <input
-          type="checkbox"
-          checked={breakdownByTargetRole}
-          onChange={(e) => setBreakdownByTargetRole(e.target.checked)}
-        />
-        Target Role
-      </label>
+          <div className="manager-header">
+            <div>
+              <h2 className="card-title">Progress Overview</h2>
+              <p className="card-subtitle">
+                Quick summary for managers. Choose what to break down by.
+              </p>
+            </div>
+          </div>
 
-      <label className="chk">
-        <input
-          type="checkbox"
-          checked={breakdownByStartWeek}
-          onChange={(e) => setBreakdownByStartWeek(e.target.checked)}
-        />
-        Start Week
-      </label>
+          <div className="manager-controls">
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={breakByTargetRole}
+                onChange={(e) => setBreakByTargetRole(e.target.checked)}
+              />
+              <span>Target Role</span>
+            </label>
 
-      <div className="manager-week">
-        <span className="muted">Program Week</span>
-        <select
-          className="input-line input-compact"
-          value={programWeek}
-          onChange={(e) => setProgramWeek(Number(e.target.value))}
-        >
-          <option value={1}>Week 1</option>
-          <option value={2}>Week 2</option>
-          <option value={3}>Week 3</option>
-          <option value={4}>Week 4</option>
-          <option value={5}>Week 5</option>
-          <option value={6}>Week 6</option>
-          <option value={7}>Week 7</option>
-        </select>
-      </div>
-    </div>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={breakByStartWeek}
+                onChange={(e) => setBreakByStartWeek(e.target.checked)}
+              />
+              <span>Start Week</span>
+            </label>
 
-    <div className="manager-grid">
-      <div className="stat-card stat-card--light">
-        <div className="muted">Total learners</div>
-        <div className="stat-value">{learners.length}</div>
-      </div>
-      <div className="stat-card stat-card--light">
-        <div className="muted">Average progress</div>
-        <div className="stat-value">
-          {learners.length
-            ? Math.round(
-                learners.reduce(
-                  (a, l) => a + Number(l.overall_progress_pct || 0),
-                  0
-                ) / learners.length
-              )
-            : 0}
-          %
+            <div className="spacer" />
+
+            <label className="field-inline">
+              <span className="field-inline__label">Program Week</span>
+              <select
+                className="input"
+                value={programWeek}
+                onChange={(e) => setProgramWeek(Number(e.target.value))}
+              >
+                {[1, 2, 3, 4, 5, 6, 7].map((w) => (
+                  <option key={w} value={w}>
+                    Week {w}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="manager-metrics">
+            <div className="metric-card">
+              <div className="metric-label">Total learners</div>
+              <div className="metric-number">{totalLearners}</div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-label">Average progress</div>
+              <div className="metric-number">{avgProgressPct}%</div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-label">On track</div>
+              <div className="metric-number">{onTrackCount}</div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-label">In progress</div>
+              <div className="metric-number">{inProgressCount}</div>
+            </div>
+          </div>
+
+          <div className="manager-table-wrap">
+            <table className="manager-table">
+              <thead>
+                <tr>
+                  <th className="manager-th">Group</th>
+                  <th className="manager-th">Learners</th>
+                  <th className="manager-th">Avg Progress</th>
+                  <th className="manager-th">On Track</th>
+                  <th className="manager-th">In Progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                {managerRows.map((r) => (
+                  <tr key={r.groupLabel}>
+                    <td className="manager-td">{r.groupLabel}</td>
+                    <td className="manager-td">{r.learnersCount}</td>
+                    <td className="manager-td">{r.avgProgressPct}%</td>
+                    <td className="manager-td">{r.onTrack}</td>
+                    <td className="manager-td">{r.inProgress}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="hint">
+            On Track = progress at or above expected pace based on Program Week and Start Week.
+          </p>
+        </section>
+      )}
+
+      {!showOverview && (
+        <div className="progress-narrow manager-showwrap">
+          <button
+            type="button"
+            className="btn-primary btn-compact"
+            onClick={() => setShowOverview(true)}
+          >
+            Show Overview
+          </button>
         </div>
-      </div>
-      <div className="stat-card stat-card--light">
-        <div className="muted">On track</div>
-        <div className="stat-value">
-          {buildManagerRows(programWeek).reduce((a, r) => a + r.onTrack, 0)}
-        </div>
-      </div>
-      <div className="stat-card stat-card--light">
-        <div className="muted">In progress</div>
-        <div className="stat-value">
-          {buildManagerRows(programWeek).reduce((a, r) => a + r.inProgress, 0)}
-        </div>
-      </div>
-    </div>
+      )}
 
-    <div className="manager-table-wrap">
-      <table className="manager-table">
-        <thead>
-          <tr>
-            <th>Group</th>
-            <th className="num">Learners</th>
-            <th className="num">Avg Progress</th>
-            <th className="num">On Track</th>
-            <th className="num">At Risk</th>
-          </tr>
-        </thead>
-        <tbody>
-          {managerRows.map((row) => (
-            <tr key={row.groupLabel}>
-              <td className="mono">{row.groupLabel}</td>
-              <td className="num">{row.count}</td>
-              <td className="num">{row.avgProgress}%</td>
-              <td className="num">{row.onTrack}</td>
-              <td className="num">{row.inProgress}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    <p className="muted small">
-      On Track = progress at or above expected pace based on Program Week and
-      Start Week.
-    </p>
-  </section>
-)}
-
-{!showManagerOverview && (
-  <div className="progress-narrow">
-    <button
-      type="button"
-      className="btn-primary btn-compact"
-      onClick={() => setShowManagerOverview(true)}
-    >
-      Show Overview
-    </button>
-  </div>
-)}
-
-      <section className="card card--soft progress-narrow">
+      <section className="card card--soft">
         <h2 className="card-title">Add New Learner</h2>
 
         <form
@@ -1895,7 +1903,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
         </form>
       </section>
 
-      <section className="card card--soft progress-narrow">
+      <section className="card card--soft">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
@@ -1925,7 +1933,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
                 <header className="learner-card-header">
                   <div className="learner-meta">
                     <div className="avatar-circle" aria-hidden="true">
-                      <span className="avatar-glyph">👤</span>
+                      <UserIcon size={18} />
                     </div>
                     <div className="learner-meta-text">
                       <div className="learner-name">{learner.name}</div>
@@ -1946,7 +1954,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
                     </div>
                     <button
                       type="button"
-                      className="btn btn-primary btn-small"
+                      className="link-button"
                       onClick={() => toggleExpanded(learner.id)}
                     >
                       {isExpanded ? "Collapse details" : "Expand details"}
@@ -1954,7 +1962,7 @@ function buildManagerRows(currentProgramWeek: number): ManagerRow[] {
 
                     <button
                       type="button"
-                      className="btn btn-primary btn-small"
+                      className="link-button link-button-danger"
                       onClick={() => handleDelete(learner.id)}
                     >
                       Delete learner
