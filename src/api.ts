@@ -1,4 +1,5 @@
 // src/api.ts
+
 export interface WeekProgress {
   week: number;
   modules_completed: number;
@@ -12,6 +13,10 @@ export interface Learner {
   source_role: string;
   target_role: string;
   start_week: number;
+
+  // Manual, editable start date (YYYY-MM-DD). Not "created_at".
+  start_date?: string | null;
+
   progress: WeekProgress[];
   overall_modules_completed: number;
   overall_modules_total: number;
@@ -36,7 +41,11 @@ async function handleResponse(res: Response) {
     } catch {
       // ignore parse failures
     }
-    const msg = detail?.trim() ? detail : `HTTP ${res.status} ${res.statusText}`;
+
+    const msg = detail?.trim()
+      ? detail
+      : `HTTP ${res.status} ${res.statusText}`;
+
     throw new Error(msg);
   }
 
@@ -54,6 +63,7 @@ export async function createLearner(payload: {
   source_role: string;
   target_role: string;
   start_week: number;
+  start_date?: string | null; // YYYY-MM-DD
 }): Promise<Learner> {
   const res = await fetch(`${API_URL}/learners`, {
     method: "POST",
@@ -78,6 +88,22 @@ export async function updateLearnerProgress(
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items: progress }),
+  });
+  return handleResponse(res);
+}
+
+/**
+ * Update learner fields (currently: start_date).
+ * This enables editing start_date for existing learners.
+ */
+export async function updateLearner(
+  learnerId: number,
+  payload: { start_date?: string | null }
+): Promise<Learner> {
+  const res = await fetch(`${API_URL}/learners/${learnerId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
   return handleResponse(res);
 }
