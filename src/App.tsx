@@ -1573,17 +1573,31 @@ const managerRows = buildManagerRows(programWeek);
 
 // Global (all weeks)
 const totalLearners = learners.length;
-const avgProgressPct = totalLearners
-  ? Math.round(learners.reduce((sum, l) => sum + getOverallProgressPct(l.progress), 0) / totalLearners)
-  : 0;
 
 const completedLearners = learners.filter((l) => getOverallProgressPct(l.progress) >= 100).length;
-const activeLearners = learners.filter((l) => {
+
+const activeList = learners.filter((l) => {
   const pct = getOverallProgressPct(l.progress);
   return pct > 0 && pct < 100;
-}).length;
-const notStartedLearners = learners.filter((l) => getOverallProgressPct(l.progress) == 0).length;
-const uncompletedLearners = Math.max(0, totalLearners - completedLearners)
+});
+
+const activeLearners = activeList.length;
+
+// Avg Progress is computed only for learners currently in progress (0% < progress < 100%).
+const avgProgressPct = activeLearners
+  ? Math.round(activeList.reduce((sum, l) => sum + getOverallProgressPct(l.progress), 0) / activeLearners)
+  : 0;
+
+// Expected pace is computed only for learners currently in progress, based on Start Week vs Program Week.
+const expectedAvgPct = activeLearners
+  ? Math.round(
+      activeList.reduce((sum, l) => sum + getExpectedPct(Number(l.start_week || 1), programWeek), 0) / activeLearners
+    )
+  : 0;
+
+const paceGapPct = avgProgressPct - expectedAvgPct;
+const paceGapLabel = `${paceGapPct >= 0 ? "+" : ""}${paceGapPct}%`;
+
 
 // Weekly pace (Program Week vs Start Week): only among active learners
 const onPaceGlobal = learners.filter((l) => {
@@ -1778,8 +1792,8 @@ const behindGlobal = learners.filter((l) => {
     <div className="grid gap-lg">
 
       {showOverview && (
-  <section className="card card--soft">
-    <div className="manager-topbar">
+  <section className="card card--soft overview-hero-card">
+    <div className="overview-topbar">
       <button
         type="button"
         className="btn-primary btn-compact"
@@ -1789,81 +1803,49 @@ const behindGlobal = learners.filter((l) => {
       </button>
     </div>
 
-    <div className="manager-header">
-      <div>
-        <h2 className="card-title">Progress Overview</h2>
-        <p className="card-subtitle">
-          Clear split between <strong>global</strong> status (all weeks) and <strong>week-based pace</strong> (Program Week).
-        </p>
-      </div>
-    </div>
+    <h2 className="card-title">Progress Overview</h2>
 
-    <div className="manager-controls">
-      <label className="check">
-        <input
-          type="checkbox"
-          checked={breakByTargetRole}
-          onChange={(e) => setBreakByTargetRole(e.target.checked)}
-        />
-        <span>Target Role</span>
-      </label>
-
-      <label className="check">
-        <input
-          type="checkbox"
-          checked={breakByStartWeek}
-          onChange={(e) => setBreakByStartWeek(e.target.checked)}
-        />
-        <span>Start Week</span>
-      </label>
-    </div>
-
-    <div className="progress-overview-cards">
-      <div className="overview-subcard">
-        <div className="subcard-header">
-          <div className="subcard-title">Global Status (All Weeks)</div>
-          <div className="subcard-subtitle">Not affected by Program Week</div>
-        </div>
-
-        <div className="metric-row">
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Total</div>
-            <div className="metric-number metric-number--lg">{totalLearners}</div>
-          </div>
-
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Active</div>
-            <div className="metric-number metric-number--lg">{activeLearners}</div>
-          </div>
-
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Completed</div>
-            <div className="metric-number metric-number--lg">{completedLearners}</div>
-          </div>
-
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Uncompleted</div>
-            <div className="metric-number metric-number--lg">{uncompletedLearners}</div>
-          </div>
-
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Avg Progress</div>
-            <div className="metric-number metric-number--lg">{avgProgressPct}%</div>
-          </div>
-        </div>
-
-        <p className="hint">
-          <strong>Active</strong> = started but not finished (0% &lt; progress &lt; 100%).
-          <span className="dot" />
-          <strong>Uncompleted</strong> = Total − Completed.
-        </p>
+    <div className="overview-hero">
+      <div className="overview-metric">
+        <div className="overview-label">Total</div>
+        <div className="overview-value">{totalLearners}</div>
       </div>
 
-      <div className="overview-subcard">
-        <div className="subcard-header subcard-header--row">
+      <div className="overview-metric">
+        <div className="overview-label">In Progress</div>
+        <div className="overview-value overview-value--inprogress">{activeLearners}</div>
+      </div>
+
+      <div className="overview-metric">
+        <div className="overview-label">Completed</div>
+        <div className="overview-value overview-value--completed">{completedLearners}</div>
+      </div>
+
+      <div className="overview-metric">
+        <div className="overview-label">Avg Progress</div>
+        <div className="overview-value">{avgProgressPct}%</div>
+      </div>
+    </div>
+  </section>
+)}
+
+{!showOverview && (
+        <div className="manager-showwrap">
+          <button
+            type="button"
+            className="btn-primary btn-compact"
+            onClick={() => setShowOverview(true)}
+          >
+            Show Overview
+          </button>
+        </div>
+      )}
+
+      
+      <section className="card card--soft">
+        <div className="weekly-header">
           <div>
-            <div className="subcard-title">Weekly Pace (W{programWeek})</div>
-            <div className="subcard-subtitle">Compares overall progress vs expected pace based on Start Week</div>
+            <h2 className="card-title">Weekly Pace Report</h2>
           </div>
 
           <label className="field-inline field-inline--compact">
@@ -1882,7 +1864,7 @@ const behindGlobal = learners.filter((l) => {
           </label>
         </div>
 
-        <div className="metric-row">
+        <div className="metric-row weekly-summary">
           <div className="metric-card metric-card--tight">
             <div className="metric-label">On Pace (W{programWeek})</div>
             <div className="metric-number metric-number--lg">{onPaceGlobal}</div>
@@ -1894,103 +1876,103 @@ const behindGlobal = learners.filter((l) => {
           </div>
 
           <div className="metric-card metric-card--tight">
-            <div className="metric-label">Not Started</div>
-            <div className="metric-number metric-number--lg">{notStartedLearners}</div>
+            <div className="metric-label">Expected @ Week {programWeek}</div>
+            <div className="metric-number metric-number--lg">{expectedAvgPct}%</div>
+          </div>
+
+          <div className="metric-card metric-card--tight">
+            <div className="metric-label">Pace Gap</div>
+            <div className="metric-number metric-number--lg">{paceGapLabel}</div>
           </div>
         </div>
 
-        <p className="hint">
-          <strong>On Pace</strong>/<strong>Behind</strong> are computed only for <strong>Active</strong> learners.
-        </p>
-      </div>
-    </div>
+        <div className="manager-controls">
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={breakByTargetRole}
+              onChange={(e) => setBreakByTargetRole(e.target.checked)}
+            />
+            <span>Target Role</span>
+          </label>
 
-    <div className="column-toggles">
-      <div className="column-toggles__label">Table columns</div>
-
-      <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.learners} onChange={() => toggleCol("learners")} />
-        <span>Learners</span>
-      </label>
-
-      <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.avgProgress} onChange={() => toggleCol("avgProgress")} />
-        <span>Avg Progress</span>
-      </label>
-
-      <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.active} onChange={() => toggleCol("active")} />
-        <span>Active</span>
-      </label>
-
-      <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.completed} onChange={() => toggleCol("completed")} />
-        <span>Completed</span>
-      </label>
-
-      <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.onPace} onChange={() => toggleCol("onPace")} />
-        <span>On Pace (W{programWeek})</span>
-      </label>
-
-      <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.behind} onChange={() => toggleCol("behind")} />
-        <span>Behind (W{programWeek})</span>
-      </label>
-    </div>
-
-    <div className="manager-table-wrap">
-      <table className="manager-table">
-        <thead>
-          <tr>
-            {visibleCols.targetRole && <th className="manager-th">Target Role</th>}
-            {visibleCols.startWeek && <th className="manager-th">Start Week</th>}
-            {visibleCols.learners && <th className="manager-th">Learners</th>}
-            {visibleCols.avgProgress && <th className="manager-th">Avg Progress</th>}
-            {visibleCols.active && <th className="manager-th">Active</th>}
-            {visibleCols.completed && <th className="manager-th">Completed</th>}
-            {visibleCols.onPace && <th className="manager-th">On Pace (W{programWeek})</th>}
-            {visibleCols.behind && <th className="manager-th">Behind (W{programWeek})</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {managerRows.map((r) => (
-            <tr key={`${r.targetRoleLabel}__${r.startWeekLabel}`}>
-              {visibleCols.targetRole && <td className="manager-td">{r.targetRoleLabel}</td>}
-              {visibleCols.startWeek && <td className="manager-td">{r.startWeekLabel}</td>}
-              {visibleCols.learners && <td className="manager-td">{r.learnersCount}</td>}
-              {visibleCols.avgProgress && <td className="manager-td">{r.avgProgressPct}%</td>}
-              {visibleCols.active && <td className="manager-td">{r.activeCount}</td>}
-              {visibleCols.completed && <td className="manager-td">{r.completedCount}</td>}
-              {visibleCols.onPace && <td className="manager-td">{r.onPaceCount}</td>}
-              {visibleCols.behind && <td className="manager-td">{r.behindCount}</td>}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    <p className="hint">
-      <strong>Start Week</strong> = when the learner started the program.
-      <span className="dot" />
-      <strong>Program Week</strong> = the week we are currently evaluating.
-    </p>
-  </section>
-)}
-
-{!showOverview && (
-        <div className="manager-showwrap">
-          <button
-            type="button"
-            className="btn-primary btn-compact"
-            onClick={() => setShowOverview(true)}
-          >
-            Show Overview
-          </button>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={breakByStartWeek}
+              onChange={(e) => setBreakByStartWeek(e.target.checked)}
+            />
+            <span>Start Week</span>
+          </label>
         </div>
-      )}
 
-      <section className="card card--soft">
+        <div className="column-toggles">
+          <div className="column-toggles__label">Table columns</div>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.learners} onChange={() => toggleCol("learners")} />
+            <span>Learners</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.avgProgress} onChange={() => toggleCol("avgProgress")} />
+            <span>Avg %</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.active} onChange={() => toggleCol("active")} />
+            <span>In Progress</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.completed} onChange={() => toggleCol("completed")} />
+            <span>Completed</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.onPace} onChange={() => toggleCol("onPace")} />
+            <span>On Pace (W{programWeek})</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.behind} onChange={() => toggleCol("behind")} />
+            <span>Behind (W{programWeek})</span>
+          </label>
+        </div>
+
+        <div className="manager-table-wrap">
+          <table className="manager-table">
+            <thead>
+              <tr>
+                {visibleCols.targetRole && <th className="manager-th">Target Role</th>}
+                {visibleCols.startWeek && <th className="manager-th">Start Week</th>}
+                {visibleCols.learners && <th className="manager-th">Learners</th>}
+                {visibleCols.avgProgress && <th className="manager-th">Avg %</th>}
+                {visibleCols.active && <th className="manager-th">In Progress</th>}
+                {visibleCols.completed && <th className="manager-th">Completed</th>}
+                {visibleCols.onPace && <th className="manager-th">On Pace (W{programWeek})</th>}
+                {visibleCols.behind && <th className="manager-th">Behind (W{programWeek})</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {managerRows.map((r) => (
+                <tr key={`${r.targetRoleLabel}__${r.startWeekLabel}`}>
+                  {visibleCols.targetRole && <td className="manager-td">{r.targetRoleLabel}</td>}
+                  {visibleCols.startWeek && <td className="manager-td">{r.startWeekLabel}</td>}
+                  {visibleCols.learners && <td className="manager-td">{r.learnersCount}</td>}
+                  {visibleCols.avgProgress && <td className="manager-td">{r.avgProgressPct}%</td>}
+                  {visibleCols.active && <td className="manager-td">{r.activeCount}</td>}
+                  {visibleCols.completed && <td className="manager-td">{r.completedCount}</td>}
+                  {visibleCols.onPace && <td className="manager-td">{r.onPaceCount}</td>}
+                  {visibleCols.behind && <td className="manager-td">{r.behindCount}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+<section className="card card--soft">
         <h2 className="card-title">Add New Learner</h2>
 
         <form

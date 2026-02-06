@@ -1159,3 +1159,62 @@ body {
 .field-inline--compact .input{
   min-width: 140px;
 }
+
+
+/* ---------- Progress Overview (hero) ---------- */
+.overview-hero-card{
+  text-align: center;
+}
+
+.overview-topbar{
+  display:flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.overview-hero{
+  display:flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 34px;
+  margin-top: 10px;
+}
+
+.overview-metric{
+  min-width: 140px;
+}
+
+.overview-label{
+  font-size: 12px;
+  opacity: .75;
+}
+
+.overview-value{
+  font-size: 46px;
+  font-weight: 800;
+  margin-top: 8px;
+  line-height: 1.05;
+}
+
+.overview-value--inprogress{
+  color: #facc15;
+}
+
+.overview-value--completed{
+  color: #22c55e;
+}
+
+/* ---------- Weekly Pace Report ---------- */
+.weekly-header{
+  display:flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.weekly-summary{
+  margin: 6px 0 12px;
+}
+
