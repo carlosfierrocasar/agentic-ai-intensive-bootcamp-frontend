@@ -105,5 +105,4 @@ export async function updateLearner(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return handleResponse(res);
-}
+  return handleResponse(res);}
