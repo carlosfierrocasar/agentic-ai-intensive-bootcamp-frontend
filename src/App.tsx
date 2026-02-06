@@ -1597,6 +1597,7 @@ const expectedAvgPct = activeLearners
 
 const paceGapPct = avgProgressPct - expectedAvgPct;
 const paceGapLabel = `${paceGapPct >= 0 ? "+" : ""}${paceGapPct}%`;
+const behindPctLabel = paceGapPct < 0 ? `${paceGapPct}%` : "0%";
 
 
 // Weekly pace (Program Week vs Start Week): only among active learners
@@ -1789,11 +1790,12 @@ const behindGlobal = learners.filter((l) => {
   }
 
   return (
-    <div className="grid gap-lg">
+    <div className="grid gap-lg progress-dashboard">
+      <h1 className="progress-dashboard-title">Progress Dashboard</h1>
 
       {showOverview && (
-  <section className="card card--soft overview-hero-card">
-    <div className="overview-topbar">
+  <section className="card card--soft pd-card pd-overview-card">
+    <div className="pd-card-header">
       <button
         type="button"
         className="btn-primary btn-compact"
@@ -1801,29 +1803,28 @@ const behindGlobal = learners.filter((l) => {
       >
         Hide Overview
       </button>
+      <h2 className="pd-card-title">Progress Overview</h2>
     </div>
 
-    <h2 className="card-title">Progress Overview</h2>
-
-    <div className="overview-hero">
-      <div className="overview-metric">
-        <div className="overview-label">Total</div>
-        <div className="overview-value">{totalLearners}</div>
+    <div className="pd-overview-tiles">
+      <div className="pd-tile">
+        <div className="pd-tile-label">Total Learners</div>
+        <div className="pd-tile-value">{totalLearners}</div>
       </div>
 
-      <div className="overview-metric">
-        <div className="overview-label">In Progress</div>
-        <div className="overview-value overview-value--inprogress">{activeLearners}</div>
+      <div className="pd-tile">
+        <div className="pd-tile-label">In Progress</div>
+        <div className="pd-tile-value pd-tile-value--inprogress">{activeLearners}</div>
       </div>
 
-      <div className="overview-metric">
-        <div className="overview-label">Completed</div>
-        <div className="overview-value overview-value--completed">{completedLearners}</div>
+      <div className="pd-tile">
+        <div className="pd-tile-label">Completed</div>
+        <div className="pd-tile-value pd-tile-value--completed">{completedLearners}</div>
       </div>
 
-      <div className="overview-metric">
-        <div className="overview-label">Avg Progress</div>
-        <div className="overview-value">{avgProgressPct}%</div>
+      <div className="pd-tile">
+        <div className="pd-tile-label">Avg Progress</div>
+        <div className="pd-tile-value">{avgProgressPct}%</div>
       </div>
     </div>
   </section>
@@ -1842,14 +1843,14 @@ const behindGlobal = learners.filter((l) => {
       )}
 
       
-      <section className="card card--soft">
+      <section className="card card--soft pd-card pd-weekly-card">
         <div className="weekly-header">
           <div>
-            <h2 className="card-title">Weekly Pace Report</h2>
+            <h2 className="pd-card-title">Weekly Pace Report</h2>
           </div>
 
           <label className="field-inline field-inline--compact">
-            <span className="field-inline__label">Program Week</span>
+            <span className="field-inline__label">Program Week:</span>
             <select
               className="input"
               value={programWeek}
@@ -1864,25 +1865,30 @@ const behindGlobal = learners.filter((l) => {
           </label>
         </div>
 
-        <div className="metric-row weekly-summary">
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">On Pace (W{programWeek})</div>
-            <div className="metric-number metric-number--lg">{onPaceGlobal}</div>
+        <div className="pd-weekly-tiles">
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">On Pace (W{programWeek})</div>
+            <div className="pd-weekly-value">{onPaceGlobal}</div>
           </div>
 
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Behind (W{programWeek})</div>
-            <div className="metric-number metric-number--lg">{behindGlobal}</div>
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Behind (W{programWeek})</div>
+            <div className="pd-weekly-value pd-weekly-value--danger">{behindGlobal}</div>
           </div>
 
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Expected @ Week {programWeek}</div>
-            <div className="metric-number metric-number--lg">{expectedAvgPct}%</div>
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Expected @ Week {programWeek}</div>
+            <div className="pd-weekly-value">{expectedAvgPct}%</div>
           </div>
 
-          <div className="metric-card metric-card--tight">
-            <div className="metric-label">Pace Gap</div>
-            <div className="metric-number metric-number--lg">{paceGapLabel}</div>
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Pace Gap (W{programWeek})</div>
+            <div className={`pd-weekly-value ${paceGapPct < 0 ? "pd-weekly-value--danger" : "pd-weekly-value--ok"}`}>{paceGapLabel}</div>
+          </div>
+
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Behind (W{programWeek})</div>
+            <div className="pd-weekly-value pd-weekly-value--danger">{behindPctLabel}</div>
           </div>
         </div>
 
