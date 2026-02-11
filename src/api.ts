@@ -24,7 +24,7 @@ export interface Learner {
 }
 
 const API_URL =
-  import.meta.env.VITE_API_URL || "https://agentic-ai-backend-mfey.onrender.com";
+  import.meta.env.VITE_API_URL || "https://agentic-ai-intensive-bootcamp-backend.onrender.com";
 
 async function handleResponse(res: Response) {
   if (!res.ok) {
@@ -105,4 +105,5 @@ export async function updateLearner(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return handleResponse(res);}
+  return handleResponse(res);
+}
