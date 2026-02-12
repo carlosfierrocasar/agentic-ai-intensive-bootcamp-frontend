@@ -1978,229 +1978,237 @@ const behindGlobal = learners.filter((l) => {
         </div>
       </section>
 
-      <div className="add-learner-dock">
-      <section className="card card--soft add-learner-card">
-        <h2 className="card-title">Add New Learner</h2>
 
-        <form
-          className="add-learner-form"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <input
-            className="input-line"
-            placeholder="Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
+      <div className="learner-split-row">
+        <div className="learner-split-left">
+        <section className="card card--soft">
+                <h2 className="card-title">Add New Learner</h2>
 
-          <select
-            className="input-line"
-            value={form.source_role}
-            onChange={(e) => setForm({ ...form, source_role: e.target.value })}
-          >
-            <option value="">Source Role</option>
-            <option>Data Engineer</option>
-            <option>Software Engineer</option>
-            <option>Solution Architect</option>
-          </select>
+                <form
+                  className="add-learner-form"
+                  onSubmit={(e) => e.preventDefault()}
+                >
+                  <input
+                    className="input-line"
+                    placeholder="Name"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
 
-          <select
-            className="input-line"
-            value={form.target_role}
-            onChange={(e) => setForm({ ...form, target_role: e.target.value })}
-          >
-            <option value="">Target Role</option>
-            <option>Agentic AI Engineer</option>
-            <option>AI Agentic Solution Architect</option>
-          </select>
+                  <select
+                    className="input-line"
+                    value={form.source_role}
+                    onChange={(e) => setForm({ ...form, source_role: e.target.value })}
+                  >
+                    <option value="">Source Role</option>
+                    <option>Data Engineer</option>
+                    <option>Software Engineer</option>
+                    <option>Solution Architect</option>
+                  </select>
 
-          <select
-            className="input-line"
-            value={form.start_week}
-            onChange={(e) =>
-              setForm({ ...form, start_week: Number(e.target.value) })
-            }
-          >
-            <option value={1}>Start Week 1</option>
-            <option value={2}>Start Week 2</option>
-            <option value={3}>Start Week 3</option>
-            <option value={4}>Start Week 4</option>
-            <option value={5}>Start Week 5</option>
-            <option value={6}>Start Week 6</option>
-            <option value={7}>Start Week 7</option>
-          </select>
+                  <select
+                    className="input-line"
+                    value={form.target_role}
+                    onChange={(e) => setForm({ ...form, target_role: e.target.value })}
+                  >
+                    <option value="">Target Role</option>
+                    <option>Agentic AI Engineer</option>
+                    <option>AI Agentic Solution Architect</option>
+                  </select>
 
-          <button
-            type="button"
-            className="btn-primary btn-full"
-            onClick={handleAddLearner}
-            disabled={isAdding}
-          >
-            {isAdding ? "Adding..." : "+ Add Learner"}
-          </button>
-        </form>
-      </section>
-    </div>
+                  <select
+                    className="input-line"
+                    value={form.start_week}
+                    onChange={(e) =>
+                      setForm({ ...form, start_week: Number(e.target.value) })
+                    }
+                  >
+                    <option value={1}>Start Week 1</option>
+                    <option value={2}>Start Week 2</option>
+                    <option value={3}>Start Week 3</option>
+                    <option value={4}>Start Week 4</option>
+                    <option value={5}>Start Week 5</option>
+                    <option value={6}>Start Week 6</option>
+                    <option value={7}>Start Week 7</option>
+                  </select>
 
-      <section className="card card--soft">
-        <div className="card-header-row">
-          <div>
-            <h2 className="card-title">Learners</h2>
-            <p className="card-subtitle">
-              Track progress week by week. Fields are editable and stored in
-              PostgreSQL.
-            </p>
-          </div>
+                  <button
+                    type="button"
+                    className="btn-primary btn-full"
+                    onClick={handleAddLearner}
+                    disabled={isAdding}
+                  >
+                    {isAdding ? "Adding..." : "+ Add Learner"}
+                  </button>
+                </form>
+              </section>
         </div>
 
-        {loading && <p className="muted">Loading...</p>}
-
-        {!loading && learners.length === 0 && (
-          <p className="muted">No learners yet. Add one above.</p>
-        )}
-
-        <div className="learner-list">
-          {learners.map((learner) => {
-            const overall = Math.round(learner.overall_progress_pct || 0);
-            const totalModules = learner.overall_modules_total || 34;
-            const completedModules = learner.overall_modules_completed || 0;
-            const isExpanded = expandedById[learner.id] ?? false;
-
-
-            return (
-              <article className="learner-card" key={learner.id}>
-                <header className="learner-card-header">
-                  <div className="learner-meta">
-                    <div className="avatar-circle" aria-hidden="true">
-                      <UserIcon size={18} />
-                    </div>
-                    <div className="learner-meta-text">
-                      <div className="learner-name">{learner.name}</div>
-                      <div className="learner-roles">
-                        {learner.source_role} → {learner.target_role}
-                      </div>
-                      <div className="learner-start">
-                        Starting from Week {learner.start_week}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="learner-summary">
-                    <div className="overall-label">Overall Progress</div>
-                    <div className="overall-value">{overall}%</div>
-                    <div className="overall-sub">
-                      {completedModules} / {totalModules} modules
-                    </div>
-                    <div className="learner-actions">
-                    <button
-                      type="button"
-                      className="btn-primary btn-compact"
-                      onClick={() => toggleExpanded(learner.id)}
-                    >
-                      {isExpanded ? "Collapse details" : "Expand details"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="btn-danger btn-compact"
-                      onClick={() => handleDelete(learner.id)}
-                    >
-                      Delete Learner
-                    </button>
-                  </div>
-                  </div>
-                </header>
-
-                {isExpanded && (
-                  <>
-                <div className="progress-bar-row">
-                  <div className="progress-bar-track">
-                    <div
-                      className="progress-bar-fill"
-                      style={{ width: `${overall}%` }}
-                    />
-                  </div>
-                  <div className="progress-bar-label">
-                    {overall}% Complete
+        <div className="learner-split-right">
+        <section className="card card--soft">
+                <div className="card-header-row">
+                  <div>
+                    <h2 className="card-title">Learners</h2>
+                    <p className="card-subtitle">
+                      Track progress week by week. Fields are editable and stored in
+                      PostgreSQL.
+                    </p>
                   </div>
                 </div>
 
-                <div className="week-progress-grid">
-                  {learner.progress.map((week) => {
-                    const status = getWeekStatus(learner, week);
+                {loading && <p className="muted">Loading...</p>}
+
+                {!loading && learners.length === 0 && (
+                  <p className="muted">No learners yet. Add one above.</p>
+                )}
+
+                <div className="learner-list">
+                  {learners.map((learner) => {
+                    const overall = Math.round(learner.overall_progress_pct || 0);
+                    const totalModules = learner.overall_modules_total || 34;
+                    const completedModules = learner.overall_modules_completed || 0;
+                    const isExpanded = expandedById[learner.id] ?? false;
+
 
                     return (
-                      <div
-                        key={week.week}
-                        className={`week-progress-card ${status === "Completed"
-                          ? "week-progress-card--completed"
-                          : status === "Skipped"
-                            ? "week-progress-card--skipped"
-                            : ""
-                          }`}
-                      >
-                        <div className="week-row">
-                          <div className="week-label">Week {week.week}</div>
-
-                          <div className="week-field week-field--inline">
-                            <label className="week-field-label">Modules</label>
-                            <div className="week-field-input-row">
-                              <input
-                                type="number"
-                                min={0}
-                                max={week.total_modules}
-                                value={week.modules_completed}
-                                onChange={(e) =>
-                                  handleWeekChange(
-                                    learner.id,
-                                    week.week,
-                                    "modules_completed",
-                                    Number(e.target.value || 0)
-                                  )
-                                }
-                                className="week-input"
-                              />
-                              <span className="week-field-suffix">
-                                / {week.total_modules}
-                              </span>
+                      <article className="learner-card" key={learner.id}>
+                        <header className="learner-card-header">
+                          <div className="learner-meta">
+                            <div className="avatar-circle" aria-hidden="true">
+                              <UserIcon size={18} />
+                            </div>
+                            <div className="learner-meta-text">
+                              <div className="learner-name">{learner.name}</div>
+                              <div className="learner-roles">
+                                {learner.source_role} → {learner.target_role}
+                              </div>
+                              <div className="learner-start">
+                                Starting from Week {learner.start_week}
+                              </div>
                             </div>
                           </div>
 
-                          <div className="week-field week-field--inline">
-                            <label className="week-field-label">Assessment</label>
-                            <div className="week-field-input-row">
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={week.assessment_pct}
-                                onChange={(e) =>
-                                  handleWeekChange(
-                                    learner.id,
-                                    week.week,
-                                    "assessment_pct",
-                                    Number(e.target.value || 0)
-                                  )
-                                }
-                                className="week-input"
-                              />
-                              <span className="week-field-suffix">%</span>
+                          <div className="learner-summary">
+                            <div className="overall-label">Overall Progress</div>
+                            <div className="overall-value">{overall}%</div>
+                            <div className="overall-sub">
+                              {completedModules} / {totalModules} modules
                             </div>
-                          </div>
+                            <button
+                              type="button"
+                              className="link-button"
+                              onClick={() => toggleExpanded(learner.id)}
+                            >
+                              {isExpanded ? "Collapse details" : "Expand details"}
+                            </button>
 
-                          <div className="week-status">{status}</div>
+                            <button
+                              type="button"
+                              className="link-button link-button-danger"
+                              onClick={() => handleDelete(learner.id)}
+                            >
+                              Delete learner
+                            </button>
+                          </div>
+                        </header>
+
+                        {isExpanded && (
+                          <>
+                        <div className="progress-bar-row">
+                          <div className="progress-bar-track">
+                            <div
+                              className="progress-bar-fill"
+                              style={{ width: `${overall}%` }}
+                            />
+                          </div>
+                          <div className="progress-bar-label">
+                            {overall}% Complete
+                          </div>
                         </div>
-                      </div>
+
+                        <div className="week-progress-grid">
+                          {learner.progress.map((week) => {
+                            const status = getWeekStatus(learner, week);
+
+                            return (
+                              <div
+                                key={week.week}
+                                className={`week-progress-card ${status === "Completed"
+                                  ? "week-progress-card--completed"
+                                  : status === "Skipped"
+                                    ? "week-progress-card--skipped"
+                                    : ""
+                                  }`}
+                              >
+                                <div className="week-title-row">
+                                  <div className="week-label">Week {week.week}</div>
+                                </div>
+
+                                <div className="week-field">
+                                  <label className="week-field-label">
+                                    Modules completed
+                                  </label>
+                                  <div className="week-field-input-row">
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={week.total_modules}
+                                      value={week.modules_completed}
+                                      onChange={(e) =>
+                                        handleWeekChange(
+                                          learner.id,
+                                          week.week,
+                                          "modules_completed",
+                                          Number(e.target.value || 0)
+                                        )
+                                      }
+                                      className="week-input"
+                                    />
+                                    <span className="week-field-suffix">
+                                      / {week.total_modules}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="week-field">
+                                  <label className="week-field-label">
+                                    Assessment %
+                                  </label>
+                                  <div className="week-field-input-row">
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      value={week.assessment_pct}
+                                      onChange={(e) =>
+                                        handleWeekChange(
+                                          learner.id,
+                                          week.week,
+                                          "assessment_pct",
+                                          Number(e.target.value || 0)
+                                        )
+                                      }
+                                      className="week-input"
+                                    />
+                                    <span className="week-field-suffix">%</span>
+                                  </div>
+                                </div>
+
+                                <div className="week-status">{status}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                          </>
+                        )}
+                      </article>
                     );
                   })}
                 </div>
-                  </>
-                )}
-              </article>
-            );
-          })}
+              </section>
         </div>
-      </section>
+      </div>
+
     </div>
   );
 }
