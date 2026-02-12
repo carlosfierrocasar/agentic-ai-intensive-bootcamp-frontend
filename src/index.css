@@ -36,7 +36,6 @@ body {
 .shell {
   min-height: 100vh;
   padding: 24px 32px 40px;
-  overflow-x: hidden;
   background: radial-gradient(circle at top left, var(--bg-gradient-start), var(--bg-gradient-end));
 }
 
@@ -463,6 +462,45 @@ body {
 }
 
 /* ===== PROGRESS TAB ===== */
+
+/* Full-bleed (viewport-aligned) row for Add New Learner + Learners
+   - Escapes the centered progress dashboard max-width
+   - Aligns to the viewport edges (shell padding), not to the cards above */
+.viewport-row {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding-left: 32px;
+  padding-right: 32px;
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.add-learner-card {
+  flex: 0 0 340px;
+  width: 340px;
+}
+
+.learners-card {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .viewport-row {
+    width: auto;
+    margin-left: 0;
+    padding-left: 0;
+    padding-right: 0;
+    flex-direction: column;
+  }
+
+  .add-learner-card {
+    width: 100%;
+    flex: none;
+  }
+}
 
 .add-learner-form {
   display: flex;
@@ -1300,26 +1338,3 @@ body {
   }
 }
 
-
-/* ---------- Add New Learner: docked to the LEFT EDGE of the VIEWPORT (full-bleed) ---------- */
-.add-learner-dock{
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-
-  display: flex;
-  justify-content: flex-start; /* left edge of the viewport */
-}
-
-.add-learner-card{
-  width: min(420px, 42vw);
-}
-
-@media (max-width: 900px){
-  .add-learner-card{
-    width: 100%;
-  }
-}
