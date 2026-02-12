@@ -1978,8 +1978,8 @@ const behindGlobal = learners.filter((l) => {
         </div>
       </section>
 
-      <div className="viewport-row">
-        <section className="card card--soft add-learner-card">
+      <div className="add-learner-dock">
+      <section className="card card--soft add-learner-card">
         <h2 className="card-title">Add New Learner</h2>
 
         <form
@@ -2039,9 +2039,10 @@ const behindGlobal = learners.filter((l) => {
             {isAdding ? "Adding..." : "+ Add Learner"}
           </button>
         </form>
-        </section>
+      </section>
+    </div>
 
-        <section className="card card--soft learners-card">
+      <section className="card card--soft">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
@@ -2090,9 +2091,10 @@ const behindGlobal = learners.filter((l) => {
                     <div className="overall-sub">
                       {completedModules} / {totalModules} modules
                     </div>
+                    <div className="learner-actions">
                     <button
                       type="button"
-                      className="link-button"
+                      className="btn-primary btn-compact"
                       onClick={() => toggleExpanded(learner.id)}
                     >
                       {isExpanded ? "Collapse details" : "Expand details"}
@@ -2100,11 +2102,12 @@ const behindGlobal = learners.filter((l) => {
 
                     <button
                       type="button"
-                      className="link-button link-button-danger"
+                      className="btn-danger btn-compact"
                       onClick={() => handleDelete(learner.id)}
                     >
-                      Delete learner
+                      Delete Learner
                     </button>
+                  </div>
                   </div>
                 </header>
 
@@ -2136,61 +2139,57 @@ const behindGlobal = learners.filter((l) => {
                             : ""
                           }`}
                       >
-                        <div className="week-title-row">
+                        <div className="week-row">
                           <div className="week-label">Week {week.week}</div>
-                        </div>
 
-                        <div className="week-field">
-                          <label className="week-field-label">
-                            Modules completed
-                          </label>
-                          <div className="week-field-input-row">
-                            <input
-                              type="number"
-                              min={0}
-                              max={week.total_modules}
-                              value={week.modules_completed}
-                              onChange={(e) =>
-                                handleWeekChange(
-                                  learner.id,
-                                  week.week,
-                                  "modules_completed",
-                                  Number(e.target.value || 0)
-                                )
-                              }
-                              className="week-input"
-                            />
-                            <span className="week-field-suffix">
-                              / {week.total_modules}
-                            </span>
+                          <div className="week-field week-field--inline">
+                            <label className="week-field-label">Modules</label>
+                            <div className="week-field-input-row">
+                              <input
+                                type="number"
+                                min={0}
+                                max={week.total_modules}
+                                value={week.modules_completed}
+                                onChange={(e) =>
+                                  handleWeekChange(
+                                    learner.id,
+                                    week.week,
+                                    "modules_completed",
+                                    Number(e.target.value || 0)
+                                  )
+                                }
+                                className="week-input"
+                              />
+                              <span className="week-field-suffix">
+                                / {week.total_modules}
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="week-field">
-                          <label className="week-field-label">
-                            Assessment %
-                          </label>
-                          <div className="week-field-input-row">
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              value={week.assessment_pct}
-                              onChange={(e) =>
-                                handleWeekChange(
-                                  learner.id,
-                                  week.week,
-                                  "assessment_pct",
-                                  Number(e.target.value || 0)
-                                )
-                              }
-                              className="week-input"
-                            />
-                            <span className="week-field-suffix">%</span>
+                          <div className="week-field week-field--inline">
+                            <label className="week-field-label">Assessment</label>
+                            <div className="week-field-input-row">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={week.assessment_pct}
+                                onChange={(e) =>
+                                  handleWeekChange(
+                                    learner.id,
+                                    week.week,
+                                    "assessment_pct",
+                                    Number(e.target.value || 0)
+                                  )
+                                }
+                                className="week-input"
+                              />
+                              <span className="week-field-suffix">%</span>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="week-status">{status}</div>
+                          <div className="week-status">{status}</div>
+                        </div>
                       </div>
                     );
                   })}
@@ -2201,8 +2200,7 @@ const behindGlobal = learners.filter((l) => {
             );
           })}
         </div>
-        </section>
-      </div>
+      </section>
     </div>
   );
 }
