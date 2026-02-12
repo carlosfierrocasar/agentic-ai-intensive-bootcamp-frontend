@@ -36,6 +36,7 @@ body {
 .shell {
   min-height: 100vh;
   padding: 24px 32px 40px;
+  overflow-x: hidden;
   background: radial-gradient(circle at top left, var(--bg-gradient-start), var(--bg-gradient-end));
 }
 
@@ -1300,11 +1301,17 @@ body {
 }
 
 
-/* ---------- Add New Learner: docked to the right of the viewport ---------- */
+/* ---------- Add New Learner: docked to the LEFT EDGE of the VIEWPORT (full-bleed) ---------- */
 .add-learner-dock{
-  width: 100%;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+
   display: flex;
-  justify-content: flex-end; /* right edge of the available viewport area */
+  justify-content: flex-start; /* left edge of the viewport */
 }
 
 .add-learner-card{
