@@ -1299,3 +1299,20 @@ body {
   }
 }
 
+
+/* ---------- Add New Learner: docked to the right of the viewport ---------- */
+.add-learner-dock{
+  width: 100%;
+  display: flex;
+  justify-content: flex-end; /* right edge of the available viewport area */
+}
+
+.add-learner-card{
+  width: min(420px, 42vw);
+}
+
+@media (max-width: 900px){
+  .add-learner-card{
+    width: 100%;
+  }
+}

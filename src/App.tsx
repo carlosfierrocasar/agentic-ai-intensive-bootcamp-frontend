@@ -1978,7 +1978,8 @@ const behindGlobal = learners.filter((l) => {
         </div>
       </section>
 
-<section className="card card--soft">
+      <div className="add-learner-dock">
+      <section className="card card--soft add-learner-card">
         <h2 className="card-title">Add New Learner</h2>
 
         <form
@@ -2039,6 +2040,7 @@ const behindGlobal = learners.filter((l) => {
           </button>
         </form>
       </section>
+    </div>
 
       <section className="card card--soft">
         <div className="card-header-row">
