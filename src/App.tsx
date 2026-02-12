@@ -1978,8 +1978,8 @@ const behindGlobal = learners.filter((l) => {
         </div>
       </section>
 
-      <div className="add-learner-dock">
-      <section className="card card--soft add-learner-card">
+      <div className="viewport-row">
+        <section className="card card--soft add-learner-card">
         <h2 className="card-title">Add New Learner</h2>
 
         <form
@@ -2039,10 +2039,9 @@ const behindGlobal = learners.filter((l) => {
             {isAdding ? "Adding..." : "+ Add Learner"}
           </button>
         </form>
-      </section>
-    </div>
+        </section>
 
-      <section className="card card--soft">
+        <section className="card card--soft learners-card">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
@@ -2202,7 +2201,8 @@ const behindGlobal = learners.filter((l) => {
             );
           })}
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
