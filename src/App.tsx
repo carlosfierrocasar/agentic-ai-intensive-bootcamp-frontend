@@ -2093,21 +2093,23 @@ const behindGlobal = learners.filter((l) => {
                             <div className="overall-sub">
                               {completedModules} / {totalModules} modules
                             </div>
+                                                        <div className="learner-actions">
                             <button
-                              type="button"
-                              className="btn-primary btn-compact"
-                              onClick={() => toggleExpanded(learner.id)}
-                            >
-                              {isExpanded ? "Collapse details" : "Expand details"}
-                            </button>
+                                                          type="button"
+                                                          className="btn-primary btn-compact"
+                                                          onClick={() => toggleExpanded(learner.id)}
+                                                        >
+                                                          {isExpanded ? "Collapse details" : "Expand details"}
+                                                        </button>
 
-                            <button
-                              type="button"
-                              className="btn-secondary btn-compact btn-danger"
-                              onClick={() => handleDelete(learner.id)}
-                            >
-                              Delete Learner
-                            </button>
+                                                        <button
+                                                          type="button"
+                                                          className="btn-secondary btn-compact btn-danger"
+                                                          onClick={() => handleDelete(learner.id)}
+                                                        >
+                                                          Delete Learner
+                                                        </button>
+                            </div>
                           </div>
                         </header>
 
