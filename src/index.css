@@ -497,37 +497,6 @@ body {
   );
 }
 
-
-/* ---------- Add New Learner + Learners: SPLIT ROW aligned to the SAME CONTAINER as Weekly Pace Report ---------- */
-.learner-split-row{
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-  margin-top: 18px;
-}
-
-.learner-split-left{
-  flex: 0 0 auto;
-  width: min(420px, 42%);
-}
-
-.learner-split-right{
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-@media (max-width: 1100px){
-  .learner-split-row{
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .learner-split-left,
-  .learner-split-right{
-    width: 100%;
-  }
-}
 .learner-list {
   margin: 4px 0 0;
   padding-left: 18px;
@@ -1330,62 +1299,64 @@ body {
   }
 }
 
-/* === Learners compact week row (reduce vertical scroll) === */
-.week-row-compact {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+
+
+/* ===== Center bottom Progress sections to match Weekly Pace Report center ===== */
+/* Centers the Add New Learner + Learners row as a group without changing their existing widths */
+.learner-split-row{
+  justify-content: center;
 }
 
-.week-pill {
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 999px;
-  background: #eef5ff;
-  border: 1px solid #d7e6ff;
-  color: #003a75;
+/* === FINAL OVERRIDES: keep split-row side-by-side AND keep week cards as horizontal carousel === */
+
+/* Center the Add New Learner + Learners block to the same main content width (like Weekly Pace Report)
+   WITHOUT changing internal card sizes. */
+.learner-split-row{
+  position: relative;
+  left: 0 !important;
+  width: min(1400px, 100%) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 24px !important;
 }
 
-.week-metric {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.55rem;
-  border-radius: 12px;
-  border: 1px solid #e2ecff;
-  background: #ffffff;
-  font-size: 0.8rem;
+.learner-split-left{
+  flex: 0 0 auto !important;
+  width: min(420px, 42%) !important;
 }
 
-.week-metric-label {
-  color: #5b6b7d;
-  font-weight: 600;
+.learner-split-right{
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
 }
 
-.week-metric-suffix {
-  color: #5b6b7d;
-  font-weight: 600;
+@media (max-width: 1100px){
+  .learner-split-row{
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .learner-split-left,
+  .learner-split-right{
+    width: 100% !important;
+  }
 }
 
-/* Make week cards look like compact rows */
-.week-progress-card {
-  padding: 0.65rem 0.8rem;
+/* Force the Week tiles container to stay horizontal with scroll (carousel) */
+.week-progress-grid{
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 14px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 10px 2px 14px !important;
+  scroll-snap-type: x proximity;
 }
 
-/* Overview-style danger button for destructive actions */
-.btn-danger {
-  background: linear-gradient(135deg, #ff4b4b, #c1121f);
-  color: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 10px 18px rgba(193, 18, 31, 0.22);
-}
-
-.btn-danger:hover {
-  filter: brightness(0.98);
-}
-
-.btn-danger:active {
-  transform: translateY(1px);
+.week-progress-card{
+  flex: 0 0 170px !important;
+  min-width: 170px !important;
+  scroll-snap-align: start;
 }
