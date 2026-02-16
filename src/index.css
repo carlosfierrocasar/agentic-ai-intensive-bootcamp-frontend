@@ -389,7 +389,7 @@ body {
 }
 
 .select {
-  min-width: 170px;
+  min-width: 260px;
   border-radius: var(--radius-pill);
   padding: 7px 14px;
   border: 1px solid var(--border-soft);
@@ -498,25 +498,24 @@ body {
 }
 
 
-/* ---------- Add New Learner + Learners: SPLIT ROW aligned to the SAME CONTAINER as Weekly Pace Report ---------- */
+/* ---------- Add New Learner + Learners: SPLIT ROW aligned to the VIEWPORT (full-bleed) ---------- */
 .learner-split-row{
-  /* Wider than the centered container, shifted left to give Learners more horizontal space
-     without pushing Add New Learner to the extreme edge of the viewport. */
-  width: min(1600px, calc(100% + 320px));
-  margin-left: auto;
-  margin-right: auto;
+  width: 100vw;
   position: relative;
-  left: -160px;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 
   display: flex;
   align-items: flex-start;
   gap: 24px;
-  margin-top: 18px;
+  padding: 0 32px;
 }
 
 .learner-split-left{
   flex: 0 0 auto;
-  width: min(420px, 42%);
+  width: min(420px, 42vw);
 }
 
 .learner-split-right{
@@ -527,7 +526,7 @@ body {
 @media (max-width: 1100px){
   .learner-split-row{
     flex-direction: column;
-    gap: 16px;
+    padding: 0;
   }
 
   .learner-split-left,
@@ -609,26 +608,6 @@ body {
   justify-content: space-between;
   gap: 1.25rem;
   margin-bottom: 1rem;
-}
-
-.learner-summary{
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-}
-
-.learner-actions{
-  display: flex;
-  gap: 10px;
-  flex-wrap: nowrap;
-  align-items: center;
-}
-
-.learner-actions .btn-compact{
-  white-space: nowrap;
-  flex: 0 0 auto;
 }
 
 .learner-card-main {
@@ -888,7 +867,7 @@ body {
 }
 
 .week-progress-card {
-  flex: 0 0 170px;
+  flex: 1 1 160px;
   min-width: 160px;
   background: #ffffff;
   border-radius: 12px;
@@ -1362,22 +1341,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex-wrap: nowrap;
-}
-
-.week-row-compact .week-status{
-  margin-left: auto;
-  margin-top: 0;
-  white-space: nowrap;
-}
-
-@media (max-width: 720px){
-  .week-row-compact{
-    flex-wrap: wrap;
-  }
-  .week-row-compact .week-status{
-    margin-left: 0;
-  }
+  flex-wrap: wrap;
 }
 
 .week-pill {
@@ -1433,38 +1397,66 @@ body {
 }
 
 
-/* --- Layout tweak: widen Learners to fit week cards, without changing existing styles elsewhere --- */
+
+/* ==========================================================
+   Bootcamp5 UI fixes (do not remove existing styles)
+   - Restore side-by-side Add New Learner + Learners layout
+   - Restore horizontal Week tiles (Week 1..7) with horizontal scroll
+   - Style Learners action buttons like Overview buttons
+   ========================================================== */
+
+/* --- Add New Learner (left) + Learners (right) row --- */
 .learner-split-row{
-  width: calc(100% + 240px);
-  margin-left: -160px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+
+  /* Align under the same centered container as the sections above */
+  width: 100%;
+  margin-top: 18px;
+}
+
+.learner-split-left{
+  flex: 0 0 auto;
+  width: min(420px, 42%);
+}
+
+.learner-split-right{
+  flex: 1 1 auto;
+  min-width: 0; /* allow right panel to shrink without overflow */
 }
 
 @media (max-width: 1100px){
   .learner-split-row{
+    flex-direction: column;
+    gap: 16px;
+  }
+  .learner-split-left,
+  .learner-split-right{
     width: 100%;
-    margin-left: 0;
   }
 }
 
-/* --- Week cards: horizontal row of week tiles (Week 1..7) --- */
-.week-progress-grid{
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 10px;
-  scroll-snap-type: x proximity;
+/* --- Learners action buttons (right side of learner header) --- */
+.learner-actions{
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
 }
 
-.week-progress-card{
-  flex: 0 0 190px;
-  min-width: 190px;
-  scroll-snap-align: start;
+/* Danger button variant */
+.btn-danger{
+  background: linear-gradient(135deg, #ff4b4b, #c1121f);
+  color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 18px rgba(193, 18, 31, 0.22);
 }
-
+.btn-danger:hover{ filter: brightness(0.98); }
+.btn-danger:active{ transform: translateY(1px); }
 
 /* --- Week tiles row (Week 1..7) --- */
-.week-tiles-row{
+.week-progress-grid{
   display: flex;
   flex-wrap: nowrap;
   gap: 14px;
@@ -1473,24 +1465,13 @@ body {
   scroll-snap-type: x proximity;
 }
 
-.week-tile{
+.week-progress-card{
   flex: 0 0 170px;
   min-width: 170px;
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e2ecff;
-  padding: 0.75rem 0.85rem;
   scroll-snap-align: start;
 }
 
-/* preserve existing status variants */
-.week-tile--completed{
-  border-color: #b8f3d1;
-  background: #f3fffa;
-}
-
-.week-tile--skipped{
-  border-color: #e6eaf2;
-  background: #fafcff;
-  opacity: 0.75;
+/* Make sure cards don't expand to full width inside the scroller */
+.week-progress-card > *{
+  min-width: 0;
 }
