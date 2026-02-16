@@ -2149,17 +2149,17 @@ const behindGlobal = learners.filter((l) => {
                           </div>
                         </div>
 
-                        <div className="week-progress-grid">
+                        <div className="week-tiles-row">
                           {normalizedProgress.map((week) => {
                             const status = getWeekStatus(learner, week);
 
                             return (
                               <div
                                 key={week.week}
-                                className={`week-progress-card ${status === "Completed"
-                                  ? "week-progress-card--completed"
+                                className={`week-tile ${status === "Completed"
+                                  ? "week-tile--completed"
                                   : status === "Skipped"
-                                    ? "week-progress-card--skipped"
+                                    ? "week-tile--skipped"
                                     : ""
                                   }`}
                               >
