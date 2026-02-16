@@ -1424,3 +1424,33 @@ body {
 .btn-danger:active {
   transform: translateY(1px);
 }
+
+
+/* --- Layout tweak: widen Learners to fit week cards, without changing existing styles elsewhere --- */
+.learner-split-row{
+  width: calc(100% + 240px);
+  margin-left: -160px;
+}
+
+@media (max-width: 1100px){
+  .learner-split-row{
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* --- Week cards: horizontal row of week tiles (Week 1..7) --- */
+.week-progress-grid{
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scroll-snap-type: x proximity;
+}
+
+.week-progress-card{
+  flex: 0 0 190px;
+  min-width: 190px;
+  scroll-snap-align: start;
+}
