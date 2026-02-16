@@ -2096,7 +2096,7 @@ const behindGlobal = learners.filter((l) => {
                             </div>
                             <button
                               type="button"
-                              className="link-button"
+                              className="btn-primary btn-compact"
                               onClick={() => toggleExpanded(learner.id)}
                             >
                               {isExpanded ? "Collapse details" : "Expand details"}
@@ -2104,10 +2104,10 @@ const behindGlobal = learners.filter((l) => {
 
                             <button
                               type="button"
-                              className="link-button link-button-danger"
+                              className="btn-secondary btn-compact btn-danger"
                               onClick={() => handleDelete(learner.id)}
                             >
-                              Delete learner
+                              Delete Learner
                             </button>
                           </div>
                         </header>
@@ -2140,15 +2140,11 @@ const behindGlobal = learners.filter((l) => {
                                     : ""
                                   }`}
                               >
-                                <div className="week-title-row">
-                                  <div className="week-label">Week {week.week}</div>
-                                </div>
+                                <div className="week-row-compact">
+                                  <div className="week-pill">Week {week.week}</div>
 
-                                <div className="week-field">
-                                  <label className="week-field-label">
-                                    Modules completed
-                                  </label>
-                                  <div className="week-field-input-row">
+                                  <div className="week-metric">
+                                    <span className="week-metric-label">Modules</span>
                                     <input
                                       type="number"
                                       min={0}
@@ -2164,17 +2160,11 @@ const behindGlobal = learners.filter((l) => {
                                       }
                                       className="week-input"
                                     />
-                                    <span className="week-field-suffix">
-                                      / {week.total_modules}
-                                    </span>
+                                    <span className="week-metric-suffix">/ {week.total_modules}</span>
                                   </div>
-                                </div>
 
-                                <div className="week-field">
-                                  <label className="week-field-label">
-                                    Assessment %
-                                  </label>
-                                  <div className="week-field-input-row">
+                                  <div className="week-metric">
+                                    <span className="week-metric-label">Assessment</span>
                                     <input
                                       type="number"
                                       min={0}
@@ -2190,12 +2180,12 @@ const behindGlobal = learners.filter((l) => {
                                       }
                                       className="week-input"
                                     />
-                                    <span className="week-field-suffix">%</span>
+                                    <span className="week-metric-suffix">%</span>
                                   </div>
-                                </div>
 
-                                <div className="week-status">{status}</div>
-                              </div>
+                                  <div className="week-status">{status}</div>
+                                </div>
+</div>
                             );
                           })}
                         </div>
