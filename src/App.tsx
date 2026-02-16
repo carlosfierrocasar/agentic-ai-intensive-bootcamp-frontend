@@ -2141,51 +2141,67 @@ const behindGlobal = learners.filter((l) => {
                                     : ""
                                   }`}
                               >
-                                <div className="week-row-compact">
-                                  <div className="week-pill">Week {week.week}</div>
+                                <div className="week-label">Week {week.week}</div>
 
-                                  <div className="week-metric">
-                                    <span className="week-metric-label">Modules</span>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={week.total_modules}
-                                      value={week.modules_completed}
-                                      onChange={(e) =>
-                                        handleWeekChange(
-                                          learner.id,
-                                          week.week,
-                                          "modules_completed",
-                                          Number(e.target.value || 0)
-                                        )
-                                      }
-                                      className="week-input"
-                                    />
-                                    <span className="week-metric-suffix">/ {week.total_modules}</span>
+                                  {status === "Skipped" ? (
+                                    <div className="week-skipped">Skipped</div>
+                                  ) : (
+                                    <>
+                                      <div className="week-field">
+                                        <span>Modules</span>
+                                        <div className="week-field-row">
+                                          <input
+                                            type="number"
+                                            min={0}
+                                            max={week.total_modules}
+                                            value={week.modules_completed}
+                                            onChange={(e) =>
+                                              handleWeekChange(
+                                                learner.id,
+                                                week.week,
+                                                "modules_completed",
+                                                Number(e.target.value || 0)
+                                              )
+                                            }
+                                          />
+                                          <span className="week-total">/ {week.total_modules} modules</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="week-field">
+                                        <span>Assessment</span>
+                                        <div className="week-field-row">
+                                          <input
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            value={week.assessment_pct}
+                                            onChange={(e) =>
+                                              handleWeekChange(
+                                                learner.id,
+                                                week.week,
+                                                "assessment_pct",
+                                                Number(e.target.value || 0)
+                                              )
+                                            }
+                                          />
+                                          <span className="week-total">%</span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+
+                                  <div
+                                    className={`week-status ${
+                                      status === "Completed"
+                                        ? "week-status--ok"
+                                        : status === "Behind"
+                                          ? "week-status--retry"
+                                          : ""
+                                    }`}
+                                  >
+                                    {status}
                                   </div>
-
-                                  <div className="week-metric">
-                                    <span className="week-metric-label">Assessment</span>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={100}
-                                      value={week.assessment_pct}
-                                      onChange={(e) =>
-                                        handleWeekChange(
-                                          learner.id,
-                                          week.week,
-                                          "assessment_pct",
-                                          Number(e.target.value || 0)
-                                        )
-                                      }
-                                      className="week-input"
-                                    />
-                                    <span className="week-metric-suffix">%</span>
-                                  </div>
-
-                                  <div className="week-status">{status}</div>
-                                </div>
 </div>
                             );
                           })}
