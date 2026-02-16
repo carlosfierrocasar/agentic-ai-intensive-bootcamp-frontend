@@ -389,7 +389,7 @@ body {
 }
 
 .select {
-  min-width: 260px;
+  min-width: 170px;
   border-radius: var(--radius-pill);
   padding: 7px 14px;
   border: 1px solid var(--border-soft);
@@ -500,7 +500,14 @@ body {
 
 /* ---------- Add New Learner + Learners: SPLIT ROW aligned to the SAME CONTAINER as Weekly Pace Report ---------- */
 .learner-split-row{
-  width: 100%;
+  /* Wider than the centered container, shifted left to give Learners more horizontal space
+     without pushing Add New Learner to the extreme edge of the viewport. */
+  width: min(1600px, calc(100% + 320px));
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  left: -160px;
+
   display: flex;
   align-items: flex-start;
   gap: 24px;
@@ -881,7 +888,7 @@ body {
 }
 
 .week-progress-card {
-  flex: 1 1 160px;
+  flex: 0 0 170px;
   min-width: 160px;
   background: #ffffff;
   border-radius: 12px;
