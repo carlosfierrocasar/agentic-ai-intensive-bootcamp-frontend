@@ -2050,8 +2050,7 @@ const behindGlobal = learners.filter((l) => {
                   <div>
                     <h2 className="card-title">Learners</h2>
                     <p className="card-subtitle">
-                      Track progress week by week. Fields are editable and stored in
-                      PostgreSQL.
+                      Track progress week by week. Fields are editable.
                     </p>
                   </div>
                 </div>
