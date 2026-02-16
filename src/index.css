@@ -1461,3 +1461,36 @@ body {
   min-width: 190px;
   scroll-snap-align: start;
 }
+
+
+/* --- Week tiles row (Week 1..7) --- */
+.week-tiles-row{
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 10px 2px 14px;
+  scroll-snap-type: x proximity;
+}
+
+.week-tile{
+  flex: 0 0 170px;
+  min-width: 170px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2ecff;
+  padding: 0.75rem 0.85rem;
+  scroll-snap-align: start;
+}
+
+/* preserve existing status variants */
+.week-tile--completed{
+  border-color: #b8f3d1;
+  background: #f3fffa;
+}
+
+.week-tile--skipped{
+  border-color: #e6eaf2;
+  background: #fafcff;
+  opacity: 0.75;
+}
