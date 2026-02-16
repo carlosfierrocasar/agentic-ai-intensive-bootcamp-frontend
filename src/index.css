@@ -1336,3 +1336,62 @@ body {
   }
 }
 
+/* === Learners compact week row (reduce vertical scroll) === */
+.week-row-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.week-pill {
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #eef5ff;
+  border: 1px solid #d7e6ff;
+  color: #003a75;
+}
+
+.week-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 12px;
+  border: 1px solid #e2ecff;
+  background: #ffffff;
+  font-size: 0.8rem;
+}
+
+.week-metric-label {
+  color: #5b6b7d;
+  font-weight: 600;
+}
+
+.week-metric-suffix {
+  color: #5b6b7d;
+  font-weight: 600;
+}
+
+/* Make week cards look like compact rows */
+.week-progress-card {
+  padding: 0.65rem 0.8rem;
+}
+
+/* Overview-style danger button for destructive actions */
+.btn-danger {
+  background: linear-gradient(135deg, #ff4b4b, #c1121f);
+  color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 18px rgba(193, 18, 31, 0.22);
+}
+
+.btn-danger:hover {
+  filter: brightness(0.98);
+}
+
+.btn-danger:active {
+  transform: translateY(1px);
+}
