@@ -2068,7 +2068,29 @@ const behindGlobal = learners.filter((l) => {
                     const completedModules = learner.overall_modules_completed || 0;
                     const isExpanded = expandedById[learner.id] ?? false;
 
-
+                    // Normalize progress so we always render Week 1–7 cards, even if the API returns a partial array.
+                    const weekTotals = [5, 5, 5, 5, 5, 5, 4];
+                    const rawProgress = Array.isArray(learner.progress) ? learner.progress : [];
+                    const normalizedProgress =
+                      rawProgress.length > 0
+                        ? weekTotals.map((t, i) => {
+                            const wk = i + 1;
+                            const found = rawProgress.find((p) => p.week === wk);
+                            return (
+                              found ?? {
+                                week: wk,
+                                modules_completed: 0,
+                                total_modules: t,
+                                assessment_pct: 0,
+                              }
+                            );
+                          })
+                        : weekTotals.map((t, i) => ({
+                            week: i + 1,
+                            modules_completed: 0,
+                            total_modules: t,
+                            assessment_pct: 0,
+                          }));
                     return (
                       <article className="learner-card" key={learner.id}>
                         <header className="learner-card-header">
@@ -2128,7 +2150,7 @@ const behindGlobal = learners.filter((l) => {
                         </div>
 
                         <div className="week-progress-grid">
-                          {learner.progress.map((week) => {
+                          {normalizedProgress.map((week) => {
                             const status = getWeekStatus(learner, week);
 
                             return (
