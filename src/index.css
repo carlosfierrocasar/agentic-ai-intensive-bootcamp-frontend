@@ -389,7 +389,7 @@ body {
 }
 
 .select {
-  min-width: 260px;
+  min-width: 170px;
   border-radius: var(--radius-pill);
   padding: 7px 14px;
   border: 1px solid var(--border-soft);
@@ -500,23 +500,18 @@ body {
 
 /* ---------- Add New Learner + Learners: SPLIT ROW aligned to the SAME CONTAINER as Weekly Pace Report ---------- */
 .learner-split-row{
-  /* Keep Add New Learner + Learners side-by-side and centered to the same container as Weekly Pace Report
-     WITHOUT changing the sizes of each section. */
-  width: 100%;
-  max-width: 1200px;
-  margin: 18px auto 0;
+  /* Wider than the centered container, shifted left to give Learners more horizontal space
+     without pushing Add New Learner to the extreme edge of the viewport. */
+  width: min(1600px, calc(100% + 320px));
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  left: -160px;
 
   display: flex;
   align-items: flex-start;
-  justify-content: center;
   gap: 24px;
-}
-
-@media (max-width: 900px){
-  .learner-split-row{
-    flex-direction: column;
-    align-items: stretch;
-  }
+  margin-top: 18px;
 }
 
 .learner-split-left{
@@ -614,6 +609,26 @@ body {
   justify-content: space-between;
   gap: 1.25rem;
   margin-bottom: 1rem;
+}
+
+.learner-summary{
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.learner-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.learner-actions .btn-compact{
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .learner-card-main {
@@ -873,7 +888,7 @@ body {
 }
 
 .week-progress-card {
-  flex: 1 1 160px;
+  flex: 0 0 170px;
   min-width: 160px;
   background: #ffffff;
   border-radius: 12px;
@@ -1347,7 +1362,22 @@ body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.week-row-compact .week-status{
+  margin-left: auto;
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px){
+  .week-row-compact{
+    flex-wrap: wrap;
+  }
+  .week-row-compact .week-status{
+    margin-left: 0;
+  }
 }
 
 .week-pill {
@@ -1400,4 +1430,67 @@ body {
 
 .btn-danger:active {
   transform: translateY(1px);
+}
+
+
+/* --- Layout tweak: widen Learners to fit week cards, without changing existing styles elsewhere --- */
+.learner-split-row{
+  width: calc(100% + 240px);
+  margin-left: -160px;
+}
+
+@media (max-width: 1100px){
+  .learner-split-row{
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* --- Week cards: horizontal row of week tiles (Week 1..7) --- */
+.week-progress-grid{
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scroll-snap-type: x proximity;
+}
+
+.week-progress-card{
+  flex: 0 0 190px;
+  min-width: 190px;
+  scroll-snap-align: start;
+}
+
+
+/* --- Week tiles row (Week 1..7) --- */
+.week-tiles-row{
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 10px 2px 14px;
+  scroll-snap-type: x proximity;
+}
+
+.week-tile{
+  flex: 0 0 170px;
+  min-width: 170px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2ecff;
+  padding: 0.75rem 0.85rem;
+  scroll-snap-align: start;
+}
+
+/* preserve existing status variants */
+.week-tile--completed{
+  border-color: #b8f3d1;
+  background: #f3fffa;
+}
+
+.week-tile--skipped{
+  border-color: #e6eaf2;
+  background: #fafcff;
+  opacity: 0.75;
 }
