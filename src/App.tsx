@@ -2042,7 +2042,7 @@ const behindGlobal = learners.filter((l) => {
         </form>
       </section>
 
-      <section className="card card--soft">
+      <section className="card card--soft learner-split-right">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
