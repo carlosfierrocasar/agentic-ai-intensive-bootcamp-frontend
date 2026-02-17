@@ -229,7 +229,7 @@ function Question({ label, name, options, selectedValue, onSelect }: QuestionPro
     <div className="question-block">
       <p className="question-label">{label}</p>
       <div className="question-options">
-        {options.map((opt: any) => (
+        {options.map((opt) => (
           <label key={opt.value} className="radio-option">
             <input
               type="radio"
@@ -328,7 +328,7 @@ function PlacementTab() {
     let totalScore = 0;
     let maxScore = 0;
 
-    placementTest.forEach((q: any) => {
+    placementTest.forEach((q) => {
       const answer = placementAnswers[q.id] ?? 0;
       totalScore += answer * q.weight;
       maxScore += 3 * q.weight;
@@ -371,16 +371,16 @@ function PlacementTab() {
           Answer the questions below, then calculate your recommended starting week.
         </p>
 
-        <form className="form-grid" onSubmit={(e: any) => e.preventDefault()}>
-          {placementTest.map((q: any) => (
+        <form className="form-grid" onSubmit={(e) => e.preventDefault()}>
+          {placementTest.map((q) => (
             <Question
               key={q.id}
               label={q.question}
               name={`placement-q-${q.id}`}
               options={[...q.options]}
               selectedValue={placementAnswers[q.id]}
-              onSelect={(value: any) =>
-                setPlacementAnswers((prev: any) => ({ ...prev, [q.id]: value }))
+              onSelect={(value) =>
+                setPlacementAnswers((prev) => ({ ...prev, [q.id]: value }))
               }
             />
           ))}
@@ -1181,7 +1181,7 @@ function ScheduleTab() {
   const weeksForTrack: ScheduleWeek[] = (bootcampSchedule as any)[track] || [];
 
   const toggleWeek = (weekNum: number) => {
-    setExpandedWeek((prev: any) => (prev === weekNum ? null : weekNum));
+    setExpandedWeek((prev) => (prev === weekNum ? null : weekNum));
   };
 
   const handleKeyToggle = (e: KeyboardEvent, weekNum: number) => {
@@ -1211,7 +1211,7 @@ function ScheduleTab() {
           <select
             className="select"
             value={trackLabel}
-            onChange={(e: any) => {
+            onChange={(e) => {
               const val = e.target.value;
               const next: TrackKey =
                 val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
@@ -1225,7 +1225,7 @@ function ScheduleTab() {
         </div>
 
         <ol className="week-list">
-          {weeksForTrack.map((w: any) => {
+          {weeksForTrack.map((w) => {
             const isOpen = expandedWeek === w.week;
             const meta = `${w.dailyHours} hours/day · Assessment on Friday`;
 
@@ -1237,7 +1237,7 @@ function ScheduleTab() {
                 tabIndex={0}
                 aria-expanded={isOpen}
                 onClick={() => toggleWeek(w.week)}
-                onKeyDown={(e: any) => handleKeyToggle(e, w.week)}
+                onKeyDown={(e) => handleKeyToggle(e, w.week)}
                 style={{ cursor: "pointer", flexWrap: "wrap" }}
               >
                 <div className="week-number">{w.week}</div>
@@ -1252,12 +1252,12 @@ function ScheduleTab() {
                     className="week-detail"
                     style={{ flexBasis: "100%", marginTop: "1rem" }}
                   >
-                    {w.days.map((d: any) => (
+                    {w.days.map((d) => (
                       <div key={d.day} style={{ marginTop: "0.75rem" }}>
                         <div className="section-heading">{d.day}</div>
 
                         <div style={{ display: "grid", gap: "0.75rem" }}>
-                          {d.modules.map((m: any, idx: any) => (
+                          {d.modules.map((m, idx) => (
                             <div
                               key={`${d.day}-${idx}`}
                               className="card"
@@ -1270,7 +1270,7 @@ function ScheduleTab() {
                                 alignItems: "center",
                                 gap: "0.85rem",
                               }}
-                              onClick={(e: any) => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div
@@ -1336,7 +1336,7 @@ function ScheduleTab() {
                       </div>
                     ))}
 
-                    <div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%", gridColumn: "1 / -1" }} onClick={(e: any) => e.stopPropagation()}>
+                    <div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%", gridColumn: "1 / -1" }} onClick={(e) => e.stopPropagation()}>
                       <div className="section-heading">Week {w.week} Assessment</div>
 
                       <div
@@ -1483,7 +1483,7 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 
 const getOverallProgressPct = (p: Learner["progress"]) => {
   const totals = (p || []).reduce(
-    (acc: any, w: any) => {
+    (acc, w) => {
       acc.done += Number(w.modules_completed || 0);
       acc.total += Number(w.total_modules || 0);
       return acc;
@@ -1504,7 +1504,7 @@ const getExpectedPct = (startWeek: number, pw: number) => {
 const buildManagerRows = (pw: number): ManagerRow[] => {
   const groups = new Map<string, { label: string; learners: Learner[] }>();
 
-  learners.forEach((l: any) => {
+  learners.forEach((l) => {
     const targetRoleLabel = breakByTargetRole ? String(l.target_role || "Unknown") : "All target roles";
     const startWeekLabel = breakByStartWeek ? `Week ${Number(l.start_week || 1)}` : "All start weeks";
     const key = `${targetRoleLabel}__${startWeekLabel}`;
@@ -1514,27 +1514,27 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
   });
 
   const rows: ManagerRow[] = [];
-  groups.forEach((g: any) => {
+  groups.forEach((g) => {
     const groupLearners = g.learners;
     const count = groupLearners.length;
 
-    const overallPcts = groupLearners.map((l: any) => getOverallProgressPct(l.progress));
-    const avg = count ? Math.round(overallPcts.reduce((a: any, b: any) => a + b, 0) / count) : 0;
+    const overallPcts = groupLearners.map((l) => getOverallProgressPct(l.progress));
+    const avg = count ? Math.round(overallPcts.reduce((a, b) => a + b, 0) / count) : 0;
 
-    const completedCount = groupLearners.filter((l: any) => getOverallProgressPct(l.progress) >= 100).length;
-    const activeCount = groupLearners.filter((l: any) => {
+    const completedCount = groupLearners.filter((l) => getOverallProgressPct(l.progress) >= 100).length;
+    const activeCount = groupLearners.filter((l) => {
       const pct = getOverallProgressPct(l.progress);
       return pct > 0 && pct < 100;
     }).length;
 
-    const onPaceCount = groupLearners.filter((l: any) => {
+    const onPaceCount = groupLearners.filter((l) => {
       const pct = getOverallProgressPct(l.progress);
       if (!(pct > 0 && pct < 100)) return false;
       const expected = getExpectedPct(Number(l.start_week || 1), pw);
       return pct >= expected;
     }).length;
 
-    const behindCount = groupLearners.filter((l: any) => {
+    const behindCount = groupLearners.filter((l) => {
       const pct = getOverallProgressPct(l.progress);
       if (!(pct > 0 && pct < 100)) return false;
       const expected = getExpectedPct(Number(l.start_week || 1), pw);
@@ -1556,7 +1556,7 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
   });
 
   // Stable sorting: put the “All ...” groups first, then alphabetical.
-  rows.sort((a: any, b: any) => {
+  rows.sort((a, b) => {
     const aAll = `${a.targetRoleLabel} ${a.startWeekLabel}`.includes("All ");
     const bAll = `${b.targetRoleLabel} ${b.startWeekLabel}`.includes("All ");
     if (aAll && !bAll) return -1;
@@ -1574,9 +1574,9 @@ const managerRows = buildManagerRows(programWeek);
 // Global (all weeks)
 const totalLearners = learners.length;
 
-const completedLearners = learners.filter((l: any) => getOverallProgressPct(l.progress) >= 100).length;
+const completedLearners = learners.filter((l) => getOverallProgressPct(l.progress) >= 100).length;
 
-const activeList = learners.filter((l: any) => {
+const activeList = learners.filter((l) => {
   const pct = getOverallProgressPct(l.progress);
   return pct > 0 && pct < 100;
 });
@@ -1585,13 +1585,13 @@ const activeLearners = activeList.length;
 
 // Avg Progress is computed only for learners currently in progress (0% < progress < 100%).
 const avgProgressPct = activeLearners
-  ? Math.round(activeList.reduce((sum: any, l: any) => sum + getOverallProgressPct(l.progress), 0) / activeLearners)
+  ? Math.round(activeList.reduce((sum, l) => sum + getOverallProgressPct(l.progress), 0) / activeLearners)
   : 0;
 
 // Expected pace is computed only for learners currently in progress, based on Start Week vs Program Week.
 const expectedAvgPct = activeLearners
   ? Math.round(
-      activeList.reduce((sum: any, l: any) => sum + getExpectedPct(Number(l.start_week || 1), programWeek), 0) / activeLearners
+      activeList.reduce((sum, l) => sum + getExpectedPct(Number(l.start_week || 1), programWeek), 0) / activeLearners
     )
   : 0;
 
@@ -1601,14 +1601,14 @@ const behindPctLabel = paceGapPct < 0 ? `${paceGapPct}%` : "0%";
 
 
 // Weekly pace (Program Week vs Start Week): only among active learners
-const onPaceGlobal = learners.filter((l: any) => {
+const onPaceGlobal = learners.filter((l) => {
   const pct = getOverallProgressPct(l.progress);
   if (!(pct > 0 && pct < 100)) return false;
   const expected = getExpectedPct(Number(l.start_week || 1), programWeek);
   return pct >= expected;
 }).length;
 
-const behindGlobal = learners.filter((l: any) => {
+const behindGlobal = learners.filter((l) => {
   const pct = getOverallProgressPct(l.progress);
   if (!(pct > 0 && pct < 100)) return false;
   const expected = getExpectedPct(Number(l.start_week || 1), programWeek);
@@ -1618,11 +1618,11 @@ const behindGlobal = learners.filter((l: any) => {
 
 
   function toggleExpanded(learnerId: number) {
-    setExpandedById((prev: any) => ({ ...prev, [learnerId]: !prev[learnerId] }));
+    setExpandedById((prev) => ({ ...prev, [learnerId]: !prev[learnerId] }));
   }
 
   function toggleCol(key: string) {
-    setVisibleCols((prev: any) => ({ ...prev, [key]: !prev[key] }));
+    setVisibleCols((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
 
@@ -1650,7 +1650,7 @@ const behindGlobal = learners.filter((l: any) => {
     }
 
     const tempId = -Date.now();
-    setExpandedById((prev: any) => ({ ...prev, [tempId]: true }));
+    setExpandedById((prev) => ({ ...prev, [tempId]: true }));
     const tempLearner: Learner = {
       id: tempId,
       name: form.name.trim(),
@@ -1668,7 +1668,7 @@ const behindGlobal = learners.filter((l: any) => {
       setIsAdding(true);
 
       // Optimistic UI: aparece de inmediato en la lista
-      setLearners((prev: any) => [...prev, tempLearner]);
+      setLearners((prev) => [...prev, tempLearner]);
 
       const created = await createLearner({
         name: tempLearner.name,
@@ -1678,8 +1678,8 @@ const behindGlobal = learners.filter((l: any) => {
       });
 
       // Reemplaza el temporal por el real
-      setLearners((prev: any) => prev.map((l: any) => (l.id === tempId ? created : l)));
-      setExpandedById((prev: any) => {
+      setLearners((prev) => prev.map((l) => (l.id === tempId ? created : l)));
+      setExpandedById((prev) => {
         const next = { ...prev };
         delete next[tempId];
         next[created.id] = true;
@@ -1689,8 +1689,8 @@ const behindGlobal = learners.filter((l: any) => {
     } catch (err) {
       console.error(err);
       // Quita el temporal si falló
-      setLearners((prev: any) => prev.filter((l: any) => l.id !== tempId));
-      setExpandedById((prev: any) => {
+      setLearners((prev) => prev.filter((l) => l.id !== tempId));
+      setExpandedById((prev) => {
         const next = { ...prev };
         delete next[tempId];
         return next;
@@ -1705,8 +1705,8 @@ const behindGlobal = learners.filter((l: any) => {
     if (!confirm("Delete this learner and all its progress?")) return;
     try {
       await deleteLearner(learnerId);
-      setLearners((prev: any) => prev.filter((l: any) => l.id !== learnerId));
-      setExpandedById((prev: any) => {
+      setLearners((prev) => prev.filter((l) => l.id !== learnerId));
+      setExpandedById((prev) => {
         const next = { ...prev };
         delete next[learnerId];
         return next;
@@ -1741,7 +1741,7 @@ const behindGlobal = learners.filter((l: any) => {
     field: "modules_completed" | "assessment_pct",
     value: number
   ) {
-    const learner = learners.find((l: any) => l.id === learnerId);
+    const learner = learners.find((l) => l.id === learnerId);
     if (!learner) return;
 
     const safeProgress = Array.isArray(learner.progress) ? learner.progress : [];
@@ -1749,14 +1749,14 @@ const behindGlobal = learners.filter((l: any) => {
     const normalizedProgress =
       safeProgress.length > 0
         ? safeProgress
-        : weekTotals.map((t: any, i: any) => ({
+        : weekTotals.map((t, i) => ({
           week: i + 1,
           modules_completed: 0,
           total_modules: t,
           assessment_pct: 0,
         }));
 
-    const newProgress = normalizedProgress.map((p: any) =>
+    const newProgress = normalizedProgress.map((p) =>
 
 
       p.week === week
@@ -1771,15 +1771,15 @@ const behindGlobal = learners.filter((l: any) => {
     );
 
     // update local de inmediato
-    setLearners((prev: any) =>
-      prev.map((l: any) => (l.id === learnerId ? { ...l, progress: newProgress } : l))
+    setLearners((prev) =>
+      prev.map((l) => (l.id === learnerId ? { ...l, progress: newProgress } : l))
     );
 
     // guardar en backend y refrescar datos de ese learner (incluye overall %)
     try {
       const updated = await updateLearnerProgress(learnerId, newProgress);
-      setLearners((prev: any) =>
-        prev.map((l: any) => (l.id === learnerId ? updated : l))
+      setLearners((prev) =>
+        prev.map((l) => (l.id === learnerId ? updated : l))
       );
     } catch (err) {
       console.error(err);
@@ -1854,9 +1854,9 @@ const behindGlobal = learners.filter((l: any) => {
             <select
               className="input"
               value={programWeek}
-              onChange={(e: any) => setProgramWeek(Number(e.target.value))}
+              onChange={(e) => setProgramWeek(Number(e.target.value))}
             >
-              {[1, 2, 3, 4, 5, 6, 7].map((w: any) => (
+              {[1, 2, 3, 4, 5, 6, 7].map((w) => (
                 <option key={w} value={w}>
                   Week {w}
                 </option>
@@ -1897,7 +1897,7 @@ const behindGlobal = learners.filter((l: any) => {
             <input
               type="checkbox"
               checked={breakByTargetRole}
-              onChange={(e: any) => setBreakByTargetRole(e.target.checked)}
+              onChange={(e) => setBreakByTargetRole(e.target.checked)}
             />
             <span>Target Role</span>
           </label>
@@ -1906,7 +1906,7 @@ const behindGlobal = learners.filter((l: any) => {
             <input
               type="checkbox"
               checked={breakByStartWeek}
-              onChange={(e: any) => setBreakByStartWeek(e.target.checked)}
+              onChange={(e) => setBreakByStartWeek(e.target.checked)}
             />
             <span>Start Week</span>
           </label>
@@ -1961,7 +1961,7 @@ const behindGlobal = learners.filter((l: any) => {
               </tr>
             </thead>
             <tbody>
-              {managerRows.map((r: any) => (
+              {managerRows.map((r) => (
                 <tr key={`${r.targetRoleLabel}__${r.startWeekLabel}`}>
                   {visibleCols.targetRole && <td className="manager-td">{r.targetRoleLabel}</td>}
                   {visibleCols.startWeek && <td className="manager-td">{r.startWeekLabel}</td>}
@@ -1983,19 +1983,19 @@ const behindGlobal = learners.filter((l: any) => {
 
         <form
           className="add-learner-form"
-          onSubmit={(e: any) => e.preventDefault()}
+          onSubmit={(e) => e.preventDefault()}
         >
           <input
             className="input-line"
             placeholder="Name"
             value={form.name}
-            onChange={(e: any) => setForm({ ...form, name: e.target.value })}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
 
           <select
             className="input-line"
             value={form.source_role}
-            onChange={(e: any) => setForm({ ...form, source_role: e.target.value })}
+            onChange={(e) => setForm({ ...form, source_role: e.target.value })}
           >
             <option value="">Source Role</option>
             <option>Data Engineer</option>
@@ -2006,7 +2006,7 @@ const behindGlobal = learners.filter((l: any) => {
           <select
             className="input-line"
             value={form.target_role}
-            onChange={(e: any) => setForm({ ...form, target_role: e.target.value })}
+            onChange={(e) => setForm({ ...form, target_role: e.target.value })}
           >
             <option value="">Target Role</option>
             <option>Agentic AI Engineer</option>
@@ -2016,7 +2016,7 @@ const behindGlobal = learners.filter((l: any) => {
           <select
             className="input-line"
             value={form.start_week}
-            onChange={(e: any) =>
+            onChange={(e) =>
               setForm({ ...form, start_week: Number(e.target.value) })
             }
           >
@@ -2058,7 +2058,7 @@ const behindGlobal = learners.filter((l: any) => {
         )}
 
         <div className="learner-list">
-          {learners.map((learner: any) => {
+          {learners.map((learner) => {
             const overall = Math.round(learner.overall_progress_pct || 0);
             const totalModules = learner.overall_modules_total || 34;
             const completedModules = learner.overall_modules_completed || 0;
@@ -2067,9 +2067,9 @@ const behindGlobal = learners.filter((l: any) => {
                     // Always render Week 1–7 tiles (even if progress rows aren't present yet)
                     const weekTotals = [5, 5, 5, 5, 5, 5, 4];
                     const rawProgress = Array.isArray(learner.progress) ? learner.progress : [];
-                    const normalizedProgress = weekTotals.map((total: any, idx: any) => {
+                    const normalizedProgress = weekTotals.map((total, idx) => {
                       const wk = idx + 1;
-                      const found = rawProgress.find((p: any) => p.week === wk);
+                      const found = rawProgress.find((p) => p.week === wk);
                       return (
                         found || {
                           week: wk,
@@ -2142,7 +2142,7 @@ const behindGlobal = learners.filter((l: any) => {
                 </div>
 
                 <div className="week-progress-grid">
-                  {normalizedProgress.map((week: any) => {
+                  {normalizedProgress.map((week) => {
                     const status = getWeekStatus(learner, week);
 
                     return (
@@ -2169,7 +2169,7 @@ const behindGlobal = learners.filter((l: any) => {
                               min={0}
                               max={week.total_modules}
                               value={week.modules_completed}
-                              onChange={(e: any) =>
+                              onChange={(e) =>
                                 handleWeekChange(
                                   learner.id,
                                   week.week,
@@ -2195,7 +2195,7 @@ const behindGlobal = learners.filter((l: any) => {
                               min={0}
                               max={100}
                               value={week.assessment_pct}
-                              onChange={(e: any) =>
+                              onChange={(e) =>
                                 handleWeekChange(
                                   learner.id,
                                   week.week,
