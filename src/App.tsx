@@ -365,7 +365,7 @@ function PlacementTab() {
 
   return (
     <div className="grid gap-lg">
-      <section className="card card--soft">
+      <section className="card card--soft learner-split-right">
         <h2 className="card-title">Placement Assessment</h2>
         <p className="muted">
           Answer the questions below, then calculate your recommended starting week.
