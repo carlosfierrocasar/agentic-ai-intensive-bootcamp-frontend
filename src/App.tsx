@@ -95,8 +95,8 @@ function TabButton({ label, active, onClick }: TabButtonProps) {
 function OverviewTab() {
   return (
     <div className="grid gap-lg">
-      <section className="card card--soft">
-        <div className="card-header-row">
+              <section className="card card--soft learner-split-right">
+          <div className="card-header-row">
           <div>
             <h2 className="card-title">Program Overview</h2>
             <p className="card-subtitle">
@@ -1978,8 +1978,10 @@ const behindGlobal = learners.filter((l) => {
         </div>
       </section>
 
-<section className="card card--soft">
-        <h2 className="card-title">Add New Learner</h2>
+      <div className="learner-split-row">
+
+        <section className="card card--soft learner-split-left">
+          <h2 className="card-title">Add New Learner</h2>
 
         <form
           className="add-learner-form"
@@ -2220,7 +2222,8 @@ const behindGlobal = learners.filter((l) => {
             );
           })}
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
