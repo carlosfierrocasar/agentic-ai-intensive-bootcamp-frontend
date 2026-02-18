@@ -1559,17 +1559,21 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
 
     const onPaceCount = groupLearners.filter((l) => {
       if (!hasReachedProgramWeek(l, pw)) return false;
-      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected week
+      const sw = Number(l.start_week || 1);
+      const curriculumWeek = sw + (pw - 1);
+      const pct = getOverallProgressPct(l.progress, curriculumWeek); // progress as-of selected week (aligned to Start Week)
       if (pct <= 0) return false; // exclude only true "not started"
-      const expected = getExpectedPct(Number(l.start_week || 1), pw);
+      const expected = getExpectedPct(sw, pw);
       return pct >= expected;
     }).length;
 
     const behindCount = groupLearners.filter((l) => {
       if (!hasReachedProgramWeek(l, pw)) return false;
-      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected week
+      const sw = Number(l.start_week || 1);
+      const curriculumWeek = sw + (pw - 1);
+      const pct = getOverallProgressPct(l.progress, curriculumWeek); // progress as-of selected week (aligned to Start Week)
       if (pct <= 0) return false; // exclude only true "not started"
-      const expected = getExpectedPct(Number(l.start_week || 1), pw);
+      const expected = getExpectedPct(sw, pw);
       return pct < expected;
     }).length;
 
