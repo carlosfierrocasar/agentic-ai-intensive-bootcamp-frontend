@@ -1252,126 +1252,129 @@ function ScheduleTab() {
                     className="week-detail"
                     style={{ flexBasis: "100%", marginTop: "1rem" }}
                   >
-<div
-  style={{
-    marginTop: "0.75rem",
-    display: "grid",
-    gap: "0.75rem",
-    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-    alignItems: "start",
-  }}
-  onClick={(e) => e.stopPropagation()}
->
-  {w.days.map((d) => (
-    <div
-      key={d.day}
-      className="card"
-      style={{
-        padding: "0.75rem",
-        borderRadius: "14px",
-        background: "rgba(255,255,255,0.65)",
-        border: "1px solid rgba(15, 23, 42, 0.08)",
-        minWidth: 0, // MUY IMPORTANTE para que el wrap funcione en grid
-      }}
-    >
-      <div
-        className="section-heading"
-        style={{
-          marginBottom: "0.5rem",
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: "0.5rem",
-        }}
-      >
-        <span>{d.day}</span>
-        <span className="muted" style={{ fontSize: "0.8rem" }}>
-          {d.modules.length} items
-        </span>
-      </div>
+                    <div
+                      style={{
+                        marginTop: "0.75rem",
+                        display: "grid",
+                        gap: "0.75rem",
+                        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+                        alignItems: "start",
+                        width: "100%",
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {w.days.map((d) => (
+                        <div
+                          key={d.day}
+                          style={{
+                            padding: "0.75rem",
+                            borderRadius: "14px",
+                            background: "rgba(255,255,255,0.65)",
+                            border: "1px solid rgba(15, 23, 42, 0.08)",
+                            minWidth: 0,
+                          }}
+                        >
+                          <div
+                            className="section-heading"
+                            style={{
+                              marginBottom: "0.5rem",
+                              display: "flex",
+                              alignItems: "baseline",
+                              justifyContent: "space-between",
+                              gap: "0.5rem",
+                            }}
+                          >
+                            <span>{d.day}</span>
+                            <span className="muted" style={{ fontSize: "0.8rem" }}>
+                              {d.modules.length} items
+                            </span>
+                          </div>
 
-      <div style={{ display: "grid", gap: "0.55rem" }}>
-        {d.modules.map((m, idx) => {
-          const title =
-            (m.resourceKey ? TRAINING_CATALOG[m.resourceKey] : undefined)
-              ?.title ?? m.title;
+                          <div style={{ display: "grid", gap: "0.55rem" }}>
+                            {d.modules.map((m, idx) => {
+                              const title =
+                                (m.resourceKey
+                                  ? TRAINING_CATALOG[m.resourceKey]
+                                  : undefined)?.title ?? m.title;
 
-          const href = m.resourceKey ? TRAINING_CATALOG[m.resourceKey]?.url : "";
-          const isInternal = [
-            "internal-docs",
-            "internal-lab",
-            "internal-project",
-            "internal-assessment",
-          ].includes(href);
+                              const href = m.resourceKey
+                                ? TRAINING_CATALOG[m.resourceKey]?.url
+                                : "";
+                              const isInternal = [
+                                "internal-docs",
+                                "internal-lab",
+                                "internal-project",
+                                "internal-assessment",
+                              ].includes(href);
 
-          return (
-            <div
-              key={`${d.day}-${idx}`}
-              style={{
-                borderRadius: "12px",
-                padding: "0.55rem 0.6rem",
-                border: "1px solid rgba(15, 23, 42, 0.08)",
-                background: "rgba(15, 23, 42, 0.02)",
-                minWidth: 0,
-              }}
-            >
-              <div
-                style={{
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                  whiteSpace: "normal", // wrap
-                  overflowWrap: "anywhere", // wrap agresivo si hay palabras largas
-                  wordBreak: "break-word",
-                }}
-                title={title}
-              >
-                {title}
-              </div>
+                              return (
+                                <div
+                                  key={`${d.day}-${idx}`}
+                                  style={{
+                                    borderRadius: "12px",
+                                    padding: "0.55rem 0.6rem",
+                                    border: "1px solid rgba(15, 23, 42, 0.08)",
+                                    background: "rgba(15, 23, 42, 0.02)",
+                                    minWidth: 0,
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div
+                                    style={{
+                                      fontWeight: 600,
+                                      lineHeight: 1.2,
+                                      whiteSpace: "normal",
+                                      overflowWrap: "anywhere",
+                                      wordBreak: "break-word",
+                                    }}
+                                    title={title}
+                                  >
+                                    {title}
+                                  </div>
 
-              <div
-                className="muted"
-                style={{
-                  marginTop: "0.2rem",
-                  fontSize: "0.82rem",
-                  display: "flex",
-                  gap: "0.5rem",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                }}
-              >
-                <span>Duration: {m.duration}</span>
+                                  <div
+                                    className="muted"
+                                    style={{
+                                      marginTop: "0.2rem",
+                                      fontSize: "0.82rem",
+                                      display: "flex",
+                                      gap: "0.5rem",
+                                      flexWrap: "wrap",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <span>Duration: {m.duration}</span>
 
-                {!href || isInternal ? null : (
-                  <a href={href} target="_blank" rel="noreferrer">
-                    Access →
-                  </a>
-                )}
+                                    {!href || isInternal ? null : (
+                                      <a href={href} target="_blank" rel="noreferrer">
+                                        Access →
+                                      </a>
+                                    )}
 
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    display: "inline-block",
-                    padding: "0.15rem 0.5rem",
-                    borderRadius: "999px",
-                    fontSize: "0.72rem",
-                    border: "1px solid rgba(15, 23, 42, 0.12)",
-                    background: "rgba(15, 23, 42, 0.03)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {m.type}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  ))}
-</div>
+                                    <span
+                                      style={{
+                                        marginLeft: "auto",
+                                        display: "inline-block",
+                                        padding: "0.15rem 0.5rem",
+                                        borderRadius: "999px",
+                                        fontSize: "0.72rem",
+                                        border: "1px solid rgba(15, 23, 42, 0.12)",
+                                        background: "rgba(15, 23, 42, 0.03)",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {m.type}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
 
-
-                    <div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%", gridColumn: "1 / -1" }} onClick={(e) => e.stopPropagation()}>
+<div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%", gridColumn: "1 / -1" }} onClick={(e) => e.stopPropagation()}>
                       <div className="section-heading">Week {w.week} Assessment</div>
 
                       <div
