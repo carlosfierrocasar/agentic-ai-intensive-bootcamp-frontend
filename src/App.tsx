@@ -1559,17 +1559,21 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
 
     const onPaceCount = groupLearners.filter((l) => {
       if (!hasReachedProgramWeek(l, pw)) return false;
-      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected week
+      const sw = Number(l.start_week || 1);
+      if (pw < sw) return false; // learner hasn't started yet at this curriculum week
+      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected curriculum week
       if (pct <= 0) return false; // exclude only true "not started"
-      const expected = getExpectedPct(Number(l.start_week || 1), pw);
+      const expected = getExpectedPct(sw, pw);
       return pct >= expected;
     }).length;
 
     const behindCount = groupLearners.filter((l) => {
       if (!hasReachedProgramWeek(l, pw)) return false;
-      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected week
+      const sw = Number(l.start_week || 1);
+      if (pw < sw) return false; // learner hasn't started yet at this curriculum week
+      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected curriculum week
       if (pct <= 0) return false; // exclude only true "not started"
-      const expected = getExpectedPct(Number(l.start_week || 1), pw);
+      const expected = getExpectedPct(sw, pw);
       return pct < expected;
     }).length;
 
@@ -1623,16 +1627,18 @@ const globalAvgProgressPct = totalLearners
 // Include everyone who has reached the selected program week.
 // Do NOT exclude those who are 100% for that week (they are "on pace").
 // --- Weekly Pace Report scope (uses start_date) ---
-const weeklyScope = learners.filter((l) => hasReachedProgramWeek(l, programWeek));
+const weeklyScope = learners.filter((l) => {
+  const sw = Number((l as any).start_week || 1);
+  return hasReachedProgramWeek(l, programWeek) && programWeek >= sw;
+});
 
 const weeklyWithProgress = weeklyScope
   .map((l) => {
     const sw = Number((l as any).start_week || 1);
-    const curriculumWeek = sw + (programWeek - 1);
 
     return {
       l,
-      pct: getOverallProgressPct(l.progress, curriculumWeek),
+      pct: getOverallProgressPct(l.progress, programWeek),
       expected: getExpectedPct(sw, programWeek),
     };
   })
@@ -1832,10 +1838,9 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
 
   return (
     <div className="grid gap-lg progress-dashboard">
-      {showOverview ? (
-        <>
-          <h1 className="progress-dashboard-title">Progress Dashboard</h1>
+      <h1 className="progress-dashboard-title">Progress Dashboard</h1>
 
+      {showOverview && (
   <section className="card card--soft pd-card pd-overview-card">
     <div className="pd-card-header">
       <button
@@ -1843,7 +1848,7 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
         className="btn-primary btn-compact"
         onClick={() => setShowOverview(false)}
       >
-        Hide Dashboard
+        Hide Overview
       </button>
       <h2 className="pd-card-title">Progress Overview</h2>
     </div>
@@ -1870,8 +1875,22 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
       </div>
     </div>
   </section>
+)}
 
-<section className="card card--soft pd-card pd-weekly-card">
+{!showOverview && (
+        <div className="manager-showwrap">
+          <button
+            type="button"
+            className="btn-primary btn-compact"
+            onClick={() => setShowOverview(true)}
+          >
+            Show Overview
+          </button>
+        </div>
+      )}
+
+      
+      <section className="card card--soft pd-card pd-weekly-card">
         <div className="weekly-header">
           <div>
             <h2 className="pd-card-title">Weekly Pace Report</h2>
@@ -2006,20 +2025,6 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
         </div>
       </section>
 
-      
-        </>
-      ) : (
-        <div className="manager-showwrap">
-          <button
-            type="button"
-            className="btn-primary btn-compact"
-            onClick={() => setShowOverview(true)}
-          >
-            Show Dashboard
-          </button>
-        </div>
-      )}
-
       <div className="learner-split-row">
 
         <section className="card card--soft learner-split-left">
@@ -2089,8 +2094,7 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
           <div>
             <h2 className="card-title">Learners</h2>
             <p className="card-subtitle">
-              Track progress week by week. Fields are editable and stored in
-              PostgreSQL.
+              Track progress week by week.
             </p>
           </div>
         </div>
@@ -2212,6 +2216,7 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
                               type="number"
                               min={0}
                               max={week.total_modules}
+                              disabled={week.week < Number((learner as any).start_week || 1)}
                               value={week.modules_completed}
                               onChange={(e) =>
                                 handleWeekChange(
@@ -2238,6 +2243,7 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
                               type="number"
                               min={0}
                               max={100}
+                              disabled={week.week < Number((learner as any).start_week || 1)}
                               value={week.assessment_pct}
                               onChange={(e) =>
                                 handleWeekChange(
