@@ -1840,16 +1840,23 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
     <div className="grid gap-lg progress-dashboard">
       <h1 className="progress-dashboard-title">Progress Dashboard</h1>
 
+      
       {showOverview && (
+              <div className="manager-showwrap">
+                <button
+                  type="button"
+                  className="btn-primary btn-compact"
+                  onClick={() => setShowOverview(false)}
+                >
+                  Hide Overview
+                </button>
+              </div>
+            )}
+
+            
+{showOverview && (
   <section className="card card--soft pd-card pd-overview-card">
     <div className="pd-card-header">
-      <button
-        type="button"
-        className="btn-primary btn-compact"
-        onClick={() => setShowOverview(false)}
-      >
-        Hide Overview
-      </button>
       <h2 className="pd-card-title">Progress Overview</h2>
     </div>
 
