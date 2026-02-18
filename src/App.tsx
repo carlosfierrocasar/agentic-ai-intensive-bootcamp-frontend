@@ -1250,7 +1250,7 @@ function ScheduleTab() {
                 {isOpen && (
                   <div
                     className="week-detail"
-                    style={{ flexBasis: "100%", marginTop: "1rem" }}
+                    style={{ flexBasis: "100%", marginTop: "1rem", width: "100%", minWidth: 0, gridColumn: "1 / -1" }}
                   >
                     <div
                       style={{
