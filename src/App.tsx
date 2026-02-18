@@ -1238,19 +1238,43 @@ function ScheduleTab() {
                 aria-expanded={isOpen}
                 onClick={() => toggleWeek(w.week)}
                 onKeyDown={(e) => handleKeyToggle(e, w.week)}
-                style={{ cursor: "pointer", flexWrap: "wrap" }}
+                style={{ cursor: "pointer", display: "block" }}
               >
-                <div className="week-number">{w.week}</div>
-                <div>
-                  <div className="week-title">{w.title}</div>
-                  <div className="week-meta">{meta}</div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                    width: "100%",
+                    minWidth: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "1rem",
+                      minWidth: 0,
+                    }}
+                  >
+                    <div className="week-number">{w.week}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="week-title">{w.title}</div>
+                      <div className="week-meta">{meta}</div>
+                    </div>
+                  </div>
+
+                  <div className="week-pill" style={{ whiteSpace: "nowrap" }}>
+                    Assessment on Friday
+                  </div>
                 </div>
-                <div className="week-pill">Assessment on Friday</div>
 
                 {isOpen && (
                   <div
                     className="week-detail"
-                    style={{ flexBasis: "100%", marginTop: "1rem", width: "100%", minWidth: 0, gridColumn: "1 / -1" }}
+                    style={{ marginTop: "1rem", width: "100%", minWidth: 0 }}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div
                       style={{
@@ -1397,6 +1421,7 @@ function ScheduleTab() {
                     </div>
                   </div>
                 )}
+
               </li>
             );
           })}
