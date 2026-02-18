@@ -1622,15 +1622,22 @@ const globalAvgProgressPct = totalLearners
 // --- Weekly Pace Report scope (uses start_date) ---
 // Include everyone who has reached the selected program week.
 // Do NOT exclude those who are 100% for that week (they are "on pace").
+// --- Weekly Pace Report scope (uses start_date) ---
 const weeklyScope = learners.filter((l) => hasReachedProgramWeek(l, programWeek));
 
 const weeklyWithProgress = weeklyScope
-  .map((l) => ({
-    l,
-    pct: getOverallProgressPct(l.progress, programWeek), // progress as-of selected week
-    expected: getExpectedPct(Number(l.start_week || 1), programWeek),
-  }))
-  .filter((x) => x.pct > 0); // exclude only true "not started"
+  .map((l) => {
+    const sw = Number((l as any).start_week || 1);
+    const curriculumWeek = sw + (programWeek - 1);
+
+    return {
+      l,
+      pct: getOverallProgressPct(l.progress, curriculumWeek),
+      expected: getExpectedPct(sw, programWeek),
+    };
+  })
+  .filter((x) => x.pct > 0);
+
 
 // Avg actual progress as-of week
 const weeklyAvgProgressPct = weeklyWithProgress.length
