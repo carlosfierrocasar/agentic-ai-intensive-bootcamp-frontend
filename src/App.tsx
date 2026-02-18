@@ -1481,17 +1481,47 @@ const [visibleCols, setVisibleCols] = useState<Record<string, boolean>>({
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-const getOverallProgressPct = (p: Learner["progress"]) => {
+const getOverallProgressPct = (p: Learner["progress"], upToWeek?: number) => {
   const totals = (p || []).reduce(
     (acc, w) => {
-      acc.done += Number(w.modules_completed || 0);
-      acc.total += Number(w.total_modules || 0);
+      const weekNum = Number((w as any).week || 0);
+      if (upToWeek != null && weekNum && weekNum > upToWeek) return acc;
+      acc.done += Number((w as any).modules_completed || 0);
+      acc.total += Number((w as any).total_modules || 0);
       return acc;
     },
     { done: 0, total: 0 }
   );
   if (!totals.total) return 0;
   return Math.round((totals.done / totals.total) * 100);
+};
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const getWeeksElapsedSinceStartDate = (startDate?: string | null) => {
+  if (!startDate) return null;
+  // Normalize to local midnight to avoid timezone drift.
+  const s = new Date(startDate);
+  const start = new Date(s.getFullYear(), s.getMonth(), s.getDate());
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.floor((end.getTime() - start.getTime()) / MS_PER_DAY);
+  if (diffDays < 0) return 0; // hasn't started yet
+  return Math.floor(diffDays / 7) + 1; // Week 1 = days 0..6
+};
+
+const getLearnerCurrentProgramWeek = (l: Learner) => {
+  const elapsed = getWeeksElapsedSinceStartDate((l as any).start_date ?? null);
+  if (elapsed == null) return null;
+  // Respect start_week as an offset (someone can start at Week 2/3 of the curriculum).
+  const offset = Number((l as any).start_week || 1) - 1;
+  return elapsed + Math.max(0, offset);
+};
+
+const hasReachedProgramWeek = (l: Learner, pw: number) => {
+  const cur = getLearnerCurrentProgramWeek(l);
+  if (cur == null) return true; // fallback: if no start_date, behave like before (include)
+  return cur >= pw;
 };
 
 const getExpectedPct = (startWeek: number, pw: number) => {
@@ -1523,21 +1553,27 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
 
     const completedCount = groupLearners.filter((l) => getOverallProgressPct(l.progress) >= 100).length;
     const activeCount = groupLearners.filter((l) => {
-      const pct = getOverallProgressPct(l.progress);
+      const pct = getOverallProgressPct(l.progress, pw);
       return pct > 0 && pct < 100;
     }).length;
 
     const onPaceCount = groupLearners.filter((l) => {
-      const pct = getOverallProgressPct(l.progress);
-      if (!(pct > 0 && pct < 100)) return false;
-      const expected = getExpectedPct(Number(l.start_week || 1), pw);
+      if (!hasReachedProgramWeek(l, pw)) return false;
+      const sw = Number(l.start_week || 1);
+      if (pw < sw) return false; // learner hasn't started yet at this curriculum week
+      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected curriculum week
+      if (pct <= 0) return false; // exclude only true "not started"
+      const expected = getExpectedPct(sw, pw);
       return pct >= expected;
     }).length;
 
     const behindCount = groupLearners.filter((l) => {
-      const pct = getOverallProgressPct(l.progress);
-      if (!(pct > 0 && pct < 100)) return false;
-      const expected = getExpectedPct(Number(l.start_week || 1), pw);
+      if (!hasReachedProgramWeek(l, pw)) return false;
+      const sw = Number(l.start_week || 1);
+      if (pw < sw) return false; // learner hasn't started yet at this curriculum week
+      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected curriculum week
+      if (pct <= 0) return false; // exclude only true "not started"
+      const expected = getExpectedPct(sw, pw);
       return pct < expected;
     }).length;
 
@@ -1576,45 +1612,56 @@ const totalLearners = learners.length;
 
 const completedLearners = learners.filter((l) => getOverallProgressPct(l.progress) >= 100).length;
 
-const activeList = learners.filter((l) => {
+const activeLearners = learners.filter((l) => {
   const pct = getOverallProgressPct(l.progress);
   return pct > 0 && pct < 100;
+}).length;
+
+
+const globalAvgProgressPct = totalLearners
+  ? Math.round(learners.reduce((sum, l) => sum + getOverallProgressPct(l.progress), 0) / totalLearners)
+  : 0;
+
+
+// --- Weekly Pace Report scope (uses start_date) ---
+// Include everyone who has reached the selected program week.
+// Do NOT exclude those who are 100% for that week (they are "on pace").
+// --- Weekly Pace Report scope (uses start_date) ---
+const weeklyScope = learners.filter((l) => {
+  const sw = Number((l as any).start_week || 1);
+  return hasReachedProgramWeek(l, programWeek) && programWeek >= sw;
 });
 
-const activeLearners = activeList.length;
+const weeklyWithProgress = weeklyScope
+  .map((l) => {
+    const sw = Number((l as any).start_week || 1);
 
-// Avg Progress is computed only for learners currently in progress (0% < progress < 100%).
-const avgProgressPct = activeLearners
-  ? Math.round(activeList.reduce((sum, l) => sum + getOverallProgressPct(l.progress), 0) / activeLearners)
+    return {
+      l,
+      pct: getOverallProgressPct(l.progress, programWeek),
+      expected: getExpectedPct(sw, programWeek),
+    };
+  })
+  .filter((x) => x.pct > 0);
+
+
+// Avg actual progress as-of week
+const weeklyAvgProgressPct = weeklyWithProgress.length
+  ? Math.round(weeklyWithProgress.reduce((sum, x) => sum + x.pct, 0) / weeklyWithProgress.length)
   : 0;
 
-// Expected pace is computed only for learners currently in progress, based on Start Week vs Program Week.
-const expectedAvgPct = activeLearners
-  ? Math.round(
-      activeList.reduce((sum, l) => sum + getExpectedPct(Number(l.start_week || 1), programWeek), 0) / activeLearners
-    )
+// Avg expected as-of week
+const expectedAvgPct = weeklyWithProgress.length
+  ? Math.round(weeklyWithProgress.reduce((sum, x) => sum + x.expected, 0) / weeklyWithProgress.length)
   : 0;
 
-const paceGapPct = avgProgressPct - expectedAvgPct;
+const paceGapPct = weeklyAvgProgressPct - expectedAvgPct;
 const paceGapLabel = `${paceGapPct >= 0 ? "+" : ""}${paceGapPct}%`;
 const behindPctLabel = paceGapPct < 0 ? `${paceGapPct}%` : "0%";
 
-
-// Weekly pace (Program Week vs Start Week): only among active learners
-const onPaceGlobal = learners.filter((l) => {
-  const pct = getOverallProgressPct(l.progress);
-  if (!(pct > 0 && pct < 100)) return false;
-  const expected = getExpectedPct(Number(l.start_week || 1), programWeek);
-  return pct >= expected;
-}).length;
-
-const behindGlobal = learners.filter((l) => {
-  const pct = getOverallProgressPct(l.progress);
-  if (!(pct > 0 && pct < 100)) return false;
-  const expected = getExpectedPct(Number(l.start_week || 1), programWeek);
-  return pct < expected;
-}).length;
-// ----------------------------------------------------------
+const onPaceGlobal = weeklyWithProgress.filter((x) => x.pct >= x.expected).length;
+const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length;
+// ---------------------------------------------------
 
 
   function toggleExpanded(learnerId: number) {
@@ -1791,162 +1838,193 @@ const behindGlobal = learners.filter((l) => {
 
   return (
     <div className="grid gap-lg progress-dashboard">
-      <div className="manager-showwrap">
-        <button
-          type="button"
-          className="btn-primary btn-compact"
-          onClick={() => setShowOverview((v) => !v)}
-        >
-          {showOverview ? "Hide Dashboard" : "Show Dashboard"}
-        </button>
-      </div>
-
-      {showOverview && (
+      {showOverview ? (
         <>
-        <h1 className="progress-dashboard-title">Progress Dashboard</h1>
-        <section className="card card--soft pd-card pd-overview-card">
-        <div className="pd-card-header">
-        <h2 className="pd-card-title">Progress Overview</h2>
-        </div>
-                <div className="pd-overview-tiles">
-        <div className="pd-tile">
+          <div className="manager-showwrap">
+            <button
+              type="button"
+              className="btn-primary btn-compact"
+              onClick={() => setShowOverview(false)}
+            >
+              Hide Dashboard
+            </button>
+          </div>
+
+          <h1 className="progress-dashboard-title">Progress Dashboard</h1>
+
+          <section className="card card--soft pd-card pd-overview-card">
+    <div className="pd-card-header">
+      <h2 className="pd-card-title">Progress Overview</h2>
+    </div>
+
+    <div className="pd-overview-tiles">
+      <div className="pd-tile">
         <div className="pd-tile-label">Total Learners</div>
         <div className="pd-tile-value">{totalLearners}</div>
-        </div>
-                <div className="pd-tile">
+      </div>
+
+      <div className="pd-tile">
         <div className="pd-tile-label">In Progress</div>
         <div className="pd-tile-value pd-tile-value--inprogress">{activeLearners}</div>
-        </div>
-                <div className="pd-tile">
+      </div>
+
+      <div className="pd-tile">
         <div className="pd-tile-label">Completed</div>
         <div className="pd-tile-value pd-tile-value--completed">{completedLearners}</div>
-        </div>
-                <div className="pd-tile">
-        <div className="pd-tile-label">Avg Progress</div>
-        <div className="pd-tile-value">{avgProgressPct}%</div>
-        </div>
-        </div>
-        </section>
+      </div>
 
-        <section className="card card--soft pd-card pd-weekly-card">
+      <div className="pd-tile">
+        <div className="pd-tile-label">Avg Progress</div>
+        <div className="pd-tile-value">{globalAvgProgressPct}%</div>
+      </div>
+    </div>
+  </section>
+
+          <section className="card card--soft pd-card pd-weekly-card">
         <div className="weekly-header">
-        <div>
-        <h2 className="pd-card-title">Weekly Pace Report</h2>
+          <div>
+            <h2 className="pd-card-title">Weekly Pace Report</h2>
+          </div>
+
+          <label className="field-inline field-inline--compact">
+            <span className="field-inline__label">Program Week:</span>
+            <select
+              className="input"
+              value={programWeek}
+              onChange={(e) => setProgramWeek(Number(e.target.value))}
+            >
+              {[1, 2, 3, 4, 5, 6, 7].map((w) => (
+                <option key={w} value={w}>
+                  Week {w}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-                <label className="field-inline field-inline--compact">
-        <span className="field-inline__label">Program Week:</span>
-        <select
-        className="input"
-        value={programWeek}
-        onChange={(e) => setProgramWeek(Number(e.target.value))}
-        >
-        {[1, 2, 3, 4, 5, 6, 7].map((w) => (
-        <option key={w} value={w}>
-        Week {w}
-        </option>
-        ))}
-        </select>
-        </label>
+
+        <div className="pd-weekly-tiles">
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">On Pace (W{programWeek})</div>
+            <div className="pd-weekly-value">{onPaceGlobal}</div>
+          </div>
+
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Behind (W{programWeek})</div>
+            <div className="pd-weekly-value pd-weekly-value--danger">{behindGlobal}</div>
+          </div>
+
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Expected @ Week {programWeek}</div>
+            <div className="pd-weekly-value">{expectedAvgPct}%</div>
+          </div>
+
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Pace Gap (W{programWeek})</div>
+            <div className={`pd-weekly-value ${paceGapPct < 0 ? "pd-weekly-value--danger" : "pd-weekly-value--ok"}`}>{paceGapLabel}</div>
+          </div>
+
+          <div className="pd-weekly-tile">
+            <div className="pd-weekly-label">Behind (W{programWeek})</div>
+            <div className="pd-weekly-value pd-weekly-value--danger">{behindPctLabel}</div>
+          </div>
         </div>
-                <div className="pd-weekly-tiles">
-        <div className="pd-weekly-tile">
-        <div className="pd-weekly-label">On Pace (W{programWeek})</div>
-        <div className="pd-weekly-value">{onPaceGlobal}</div>
+
+        <div className="manager-controls">
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={breakByTargetRole}
+              onChange={(e) => setBreakByTargetRole(e.target.checked)}
+            />
+            <span>Target Role</span>
+          </label>
+
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={breakByStartWeek}
+              onChange={(e) => setBreakByStartWeek(e.target.checked)}
+            />
+            <span>Start Week</span>
+          </label>
         </div>
-                <div className="pd-weekly-tile">
-        <div className="pd-weekly-label">Behind (W{programWeek})</div>
-        <div className="pd-weekly-value pd-weekly-value--danger">{behindGlobal}</div>
+
+        <div className="column-toggles">
+          <div className="column-toggles__label">Table columns</div>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.learners} onChange={() => toggleCol("learners")} />
+            <span>Learners</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.avgProgress} onChange={() => toggleCol("avgProgress")} />
+            <span>Avg %</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.active} onChange={() => toggleCol("active")} />
+            <span>In Progress</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.completed} onChange={() => toggleCol("completed")} />
+            <span>Completed</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.onPace} onChange={() => toggleCol("onPace")} />
+            <span>On Pace (W{programWeek})</span>
+          </label>
+
+          <label className="check check--small">
+            <input type="checkbox" checked={visibleCols.behind} onChange={() => toggleCol("behind")} />
+            <span>Behind (W{programWeek})</span>
+          </label>
         </div>
-                <div className="pd-weekly-tile">
-        <div className="pd-weekly-label">Expected @ Week {programWeek}</div>
-        <div className="pd-weekly-value">{expectedAvgPct}%</div>
+
+        <div className="manager-table-wrap">
+          <table className="manager-table">
+            <thead>
+              <tr>
+                {visibleCols.targetRole && <th className="manager-th">Target Role</th>}
+                {visibleCols.startWeek && <th className="manager-th">Start Week</th>}
+                {visibleCols.learners && <th className="manager-th">Learners</th>}
+                {visibleCols.avgProgress && <th className="manager-th">Avg %</th>}
+                {visibleCols.active && <th className="manager-th">In Progress</th>}
+                {visibleCols.completed && <th className="manager-th">Completed</th>}
+                {visibleCols.onPace && <th className="manager-th">On Pace (W{programWeek})</th>}
+                {visibleCols.behind && <th className="manager-th">Behind (W{programWeek})</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {managerRows.map((r) => (
+                <tr key={`${r.targetRoleLabel}__${r.startWeekLabel}`}>
+                  {visibleCols.targetRole && <td className="manager-td">{r.targetRoleLabel}</td>}
+                  {visibleCols.startWeek && <td className="manager-td">{r.startWeekLabel}</td>}
+                  {visibleCols.learners && <td className="manager-td">{r.learnersCount}</td>}
+                  {visibleCols.avgProgress && <td className="manager-td">{r.avgProgressPct}%</td>}
+                  {visibleCols.active && <td className="manager-td">{r.activeCount}</td>}
+                  {visibleCols.completed && <td className="manager-td">{r.completedCount}</td>}
+                  {visibleCols.onPace && <td className="manager-td">{r.onPaceCount}</td>}
+                  {visibleCols.behind && <td className="manager-td">{r.behindCount}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-                <div className="pd-weekly-tile">
-        <div className="pd-weekly-label">Pace Gap (W{programWeek})</div>
-        <div className={`pd-weekly-value ${paceGapPct < 0 ? "pd-weekly-value--danger" : "pd-weekly-value--ok"}`}>{paceGapLabel}</div>
-        </div>
-                <div className="pd-weekly-tile">
-        <div className="pd-weekly-label">Behind (W{programWeek})</div>
-        <div className="pd-weekly-value pd-weekly-value--danger">{behindPctLabel}</div>
-        </div>
-        </div>
-                <div className="manager-controls">
-        <label className="check">
-        <input
-        type="checkbox"
-        checked={breakByTargetRole}
-        onChange={(e) => setBreakByTargetRole(e.target.checked)}
-        />
-        <span>Target Role</span>
-        </label>
-                <label className="check">
-        <input
-        type="checkbox"
-        checked={breakByStartWeek}
-        onChange={(e) => setBreakByStartWeek(e.target.checked)}
-        />
-        <span>Start Week</span>
-        </label>
-        </div>
-                <div className="column-toggles">
-        <div className="column-toggles__label">Table columns</div>
-                <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.learners} onChange={() => toggleCol("learners")} />
-        <span>Learners</span>
-        </label>
-                <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.avgProgress} onChange={() => toggleCol("avgProgress")} />
-        <span>Avg %</span>
-        </label>
-                <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.active} onChange={() => toggleCol("active")} />
-        <span>In Progress</span>
-        </label>
-                <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.completed} onChange={() => toggleCol("completed")} />
-        <span>Completed</span>
-        </label>
-                <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.onPace} onChange={() => toggleCol("onPace")} />
-        <span>On Pace (W{programWeek})</span>
-        </label>
-                <label className="check check--small">
-        <input type="checkbox" checked={visibleCols.behind} onChange={() => toggleCol("behind")} />
-        <span>Behind (W{programWeek})</span>
-        </label>
-        </div>
-                <div className="manager-table-wrap">
-        <table className="manager-table">
-        <thead>
-        <tr>
-        {visibleCols.targetRole && <th className="manager-th">Target Role</th>}
-        {visibleCols.startWeek && <th className="manager-th">Start Week</th>}
-        {visibleCols.learners && <th className="manager-th">Learners</th>}
-        {visibleCols.avgProgress && <th className="manager-th">Avg %</th>}
-        {visibleCols.active && <th className="manager-th">In Progress</th>}
-        {visibleCols.completed && <th className="manager-th">Completed</th>}
-        {visibleCols.onPace && <th className="manager-th">On Pace (W{programWeek})</th>}
-        {visibleCols.behind && <th className="manager-th">Behind (W{programWeek})</th>}
-        </tr>
-        </thead>
-        <tbody>
-        {managerRows.map((r) => (
-        <tr key={`${r.targetRoleLabel}__${r.startWeekLabel}`}>
-        {visibleCols.targetRole && <td className="manager-td">{r.targetRoleLabel}</td>}
-        {visibleCols.startWeek && <td className="manager-td">{r.startWeekLabel}</td>}
-        {visibleCols.learners && <td className="manager-td">{r.learnersCount}</td>}
-        {visibleCols.avgProgress && <td className="manager-td">{r.avgProgressPct}%</td>}
-        {visibleCols.active && <td className="manager-td">{r.activeCount}</td>}
-        {visibleCols.completed && <td className="manager-td">{r.completedCount}</td>}
-        {visibleCols.onPace && <td className="manager-td">{r.onPaceCount}</td>}
-        {visibleCols.behind && <td className="manager-td">{r.behindCount}</td>}
-        </tr>
-        ))}
-        </tbody>
-        </table>
-        </div>
-        </section>
+      </section>
         </>
+      ) : (
+        <div className="manager-showwrap">
+          <button
+            type="button"
+            className="btn-primary btn-compact"
+            onClick={() => setShowOverview(true)}
+          >
+            Show Dashboard
+          </button>
+        </div>
       )}
 
 
@@ -2014,13 +2092,12 @@ const behindGlobal = learners.filter((l) => {
         </form>
       </section>
 
-      <section className="card card--soft">
+      <section className="card card--soft learner-split-right">
         <div className="card-header-row">
           <div>
             <h2 className="card-title">Learners</h2>
             <p className="card-subtitle">
-              Track progress week by week. Fields are editable and stored in
-              PostgreSQL.
+              Track progress week by week.
             </p>
           </div>
         </div>
@@ -2142,6 +2219,7 @@ const behindGlobal = learners.filter((l) => {
                               type="number"
                               min={0}
                               max={week.total_modules}
+                              disabled={week.week < Number((learner as any).start_week || 1)}
                               value={week.modules_completed}
                               onChange={(e) =>
                                 handleWeekChange(
@@ -2168,6 +2246,7 @@ const behindGlobal = learners.filter((l) => {
                               type="number"
                               min={0}
                               max={100}
+                              disabled={week.week < Number((learner as any).start_week || 1)}
                               value={week.assessment_pct}
                               onChange={(e) =>
                                 handleWeekChange(
