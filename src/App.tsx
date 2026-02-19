@@ -1542,21 +1542,43 @@ const [visibleCols, setVisibleCols] = useState<Record<string, boolean>>({
   behind: true,
 });
 
-const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+const clamp = (v: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, v));
 
-const getOverallProgressPct = (p: Learner["progress"], upToWeek?: number) => {
+/**
+ * Progress % is computed relative to the learner's assigned curriculum:
+ * weeks >= startWeek. When upToWeek is provided, it only counts completed
+ * modules up to that curriculum week, but the denominator remains the
+ * assigned total modules (so Week 1 is ~14% of a 7-week / 34-module course).
+ */
+const getProgressPct = (
+  p: Learner["progress"],
+  startWeek: number = 1,
+  upToWeek?: number
+) => {
+  const sw = Number(startWeek || 1);
+
   const totals = (p || []).reduce(
     (acc, w) => {
       const weekNum = Number((w as any).week || 0);
-      if (upToWeek != null && weekNum && weekNum > upToWeek) return acc;
-      acc.done += Number((w as any).modules_completed || 0);
-      acc.total += Number((w as any).total_modules || 0);
+      if (!weekNum || weekNum < sw) return acc;
+
+      const total = Number((w as any).total_modules || 0);
+      const done = Number((w as any).modules_completed || 0);
+
+      acc.total += total;
+
+      if (upToWeek == null || weekNum <= upToWeek) {
+        acc.done += done;
+      }
+
       return acc;
     },
     { done: 0, total: 0 }
   );
+
   if (!totals.total) return 0;
-  return Math.round((totals.done / totals.total) * 100);
+  return clamp(Math.round((totals.done / totals.total) * 100), 0, 100);
 };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -1587,11 +1609,49 @@ const hasReachedProgramWeek = (l: Learner, pw: number) => {
   return cur >= pw;
 };
 
-const getExpectedPct = (startWeek: number, pw: number) => {
-  // Expected pace: by Program Week relative to the learner Start Week over a 7-week program.
-  const relative = pw - startWeek + 1;
-  const raw = (relative / 7) * 100;
-  return clamp(Math.round(raw), 0, 100);
+const TOTAL_PROGRAM_WEEKS = 7;
+
+/**
+ * Expected % is computed from the curriculum structure (modules per week),
+ * not a simple week/totalWeeks ratio. It also respects startWeek by scaling
+ * over the learner's assigned weeks (startWeek..TOTAL_PROGRAM_WEEKS).
+ *
+ * This guarantees:
+ * - Week 7 expected = 100%
+ * - Week 1 expected ≈ (modules in Week 1 / total modules) * 100
+ */
+const getExpectedPct = (
+  p: Learner["progress"],
+  startWeek: number,
+  pw: number
+) => {
+  const sw = Number(startWeek || 1);
+  const week = clamp(Number(pw || 1), 1, TOTAL_PROGRAM_WEEKS);
+
+  const totals = (p || []).reduce(
+    (acc, w) => {
+      const weekNum = Number((w as any).week || 0);
+      if (!weekNum || weekNum < sw) return acc;
+
+      const total = Number((w as any).total_modules || 0);
+      acc.assignedTotal += total;
+
+      if (weekNum <= week) acc.assignedUpTo += total;
+
+      return acc;
+    },
+    { assignedUpTo: 0, assignedTotal: 0 }
+  );
+
+  // Fallback if progress data doesn't include total_modules per week.
+  if (!totals.assignedTotal) {
+    const relative = week - sw + 1;
+    const denom = Math.max(1, TOTAL_PROGRAM_WEEKS - sw + 1);
+    const raw = (clamp(relative, 0, denom) / denom) * 100;
+    return clamp(Math.round(raw), 0, 100);
+  }
+
+  return clamp(Math.round((totals.assignedUpTo / totals.assignedTotal) * 100), 0, 100);
 };
 
 const buildManagerRows = (pw: number): ManagerRow[] => {
@@ -1611,12 +1671,12 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
     const groupLearners = g.learners;
     const count = groupLearners.length;
 
-    const overallPcts = groupLearners.map((l) => getOverallProgressPct(l.progress));
+    const overallPcts = groupLearners.map((l) => getProgressPct(l.progress, Number(l.start_week || 1)));
     const avg = count ? Math.round(overallPcts.reduce((a, b) => a + b, 0) / count) : 0;
 
-    const completedCount = groupLearners.filter((l) => getOverallProgressPct(l.progress) >= 100).length;
+    const completedCount = groupLearners.filter((l) => getProgressPct(l.progress, Number(l.start_week || 1)) >= 100).length;
     const activeCount = groupLearners.filter((l) => {
-      const pct = getOverallProgressPct(l.progress, pw);
+      const pct = getProgressPct(l.progress, Number(l.start_week || 1), pw);
       return pct > 0 && pct < 100;
     }).length;
 
@@ -1624,9 +1684,9 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
       if (!hasReachedProgramWeek(l, pw)) return false;
       const sw = Number(l.start_week || 1);
       if (pw < sw) return false; // learner hasn't started yet at this curriculum week
-      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected curriculum week
+      const pct = getProgressPct(l.progress, Number(l.start_week || 1), pw); // progress as-of selected curriculum week
       if (pct <= 0) return false; // exclude only true "not started"
-      const expected = getExpectedPct(sw, pw);
+      const expected = getExpectedPct(l.progress, sw, pw);
       return pct >= expected;
     }).length;
 
@@ -1634,9 +1694,9 @@ const buildManagerRows = (pw: number): ManagerRow[] => {
       if (!hasReachedProgramWeek(l, pw)) return false;
       const sw = Number(l.start_week || 1);
       if (pw < sw) return false; // learner hasn't started yet at this curriculum week
-      const pct = getOverallProgressPct(l.progress, pw); // progress as-of selected curriculum week
+      const pct = getProgressPct(l.progress, Number(l.start_week || 1), pw); // progress as-of selected curriculum week
       if (pct <= 0) return false; // exclude only true "not started"
-      const expected = getExpectedPct(sw, pw);
+      const expected = getExpectedPct(l.progress, sw, pw);
       return pct < expected;
     }).length;
 
@@ -1673,16 +1733,16 @@ const managerRows = buildManagerRows(programWeek);
 // Global (all weeks)
 const totalLearners = learners.length;
 
-const completedLearners = learners.filter((l) => getOverallProgressPct(l.progress) >= 100).length;
+const completedLearners = learners.filter((l) => getProgressPct(l.progress, Number(l.start_week || 1)) >= 100).length;
 
 const activeLearners = learners.filter((l) => {
-  const pct = getOverallProgressPct(l.progress);
+  const pct = getProgressPct(l.progress, Number(l.start_week || 1));
   return pct > 0 && pct < 100;
 }).length;
 
 
 const globalAvgProgressPct = totalLearners
-  ? Math.round(learners.reduce((sum, l) => sum + getOverallProgressPct(l.progress), 0) / totalLearners)
+  ? Math.round(learners.reduce((sum, l) => sum + getProgressPct(l.progress, Number(l.start_week || 1)), 0) / totalLearners)
   : 0;
 
 
@@ -1701,8 +1761,8 @@ const weeklyWithProgress = weeklyScope
 
     return {
       l,
-      pct: getOverallProgressPct(l.progress, programWeek),
-      expected: getExpectedPct(sw, programWeek),
+      pct: getProgressPct(l.progress, Number((l as any).start_week || 1), programWeek),
+      expected: getExpectedPct(l.progress, sw, programWeek),
     };
   })
   .filter((x) => x.pct > 0);
