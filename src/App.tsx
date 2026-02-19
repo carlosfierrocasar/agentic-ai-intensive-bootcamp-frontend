@@ -1587,25 +1587,10 @@ const hasReachedProgramWeek = (l: Learner, pw: number) => {
   return cur >= pw;
 };
 
-const TOTAL_PROGRAM_WEEKS = 7;
-
 const getExpectedPct = (startWeek: number, pw: number) => {
-  // Expected pace MUST reach 100% on the final week of the program (Week 7).
-  // Learners can start later in the curriculum (startWeek > 1). In that case,
-  // we scale the expected pace across the *remaining* weeks so they are still
-  // expected to be at 100% by Week 7.
-  //
-  // Examples (TOTAL_PROGRAM_WEEKS = 7):
-  // - startWeek=1, pw=7  -> 100%
-  // - startWeek=2, pw=7  -> 100% (6 remaining weeks)
-  // - startWeek=4, pw=7  -> 100% (4 remaining weeks)
-  //
-  // If pw is before the learner's startWeek, expected is 0.
-  if (pw < startWeek) return 0;
-
-  const remainingWeeks = Math.max(1, TOTAL_PROGRAM_WEEKS - startWeek + 1);
+  // Expected pace: by Program Week relative to the learner Start Week over a 7-week program.
   const relative = pw - startWeek + 1;
-  const raw = (relative / remainingWeeks) * 100;
+  const raw = (relative / 7) * 100;
   return clamp(Math.round(raw), 0, 100);
 };
 
