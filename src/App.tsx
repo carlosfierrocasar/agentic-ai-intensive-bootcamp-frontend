@@ -2371,14 +2371,7 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
                               max={100}
                               disabled={week.week < Number((learner as any).start_week || 1)}
                               value={week.assessment_pct}
-                              onChange={(e) =>
-                                handleWeekChange(
-                                  learner.id,
-                                  week.week,
-                                  "assessment_pct",
-                                  Number(e.target.value || 0)
-                                )
-                              }
+                              readOnly={true}
                               className="week-input"
                             />
                             <span className="week-field-suffix">%</span>
