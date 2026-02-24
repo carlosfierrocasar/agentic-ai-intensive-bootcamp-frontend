@@ -1336,7 +1336,11 @@ function ScheduleTab() {
   };
 
   const calendarStart = getMondayWeekStart(startDate);
-  const calendarDays = Array.from({ length: 49 }, (_, i) => addDays(calendarStart, i));
+  const calendarDays = Array.from({ length: 35 }, (_, i) => {
+    const week = Math.floor(i / 5);
+    const dow = i % 5; // 0=Mon ... 4=Fri
+    return addDays(calendarStart, week * 7 + dow);
+  });
 
   const selectedDate = selectedDateIso ? parseISODate(selectedDateIso) : null;
 
@@ -1406,11 +1410,11 @@ function ScheduleTab() {
           style={{
             marginTop: "1rem",
             display: "grid",
-            gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
             gap: "0.5rem",
           }}
         >
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((h) => (
+          {["Mon", "Tue", "Wed", "Thu", "Fri"].map((h) => (
             <div
               key={h}
               className="muted"
