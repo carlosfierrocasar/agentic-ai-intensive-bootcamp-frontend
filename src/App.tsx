@@ -1324,8 +1324,19 @@ function ScheduleTab() {
     };
   };
 
-  // Build a simple 7-week calendar grid (49 days) starting on start_date.
-  const calendarDays = Array.from({ length: 49 }, (_, i) => addDays(startDate, i));
+  // Build a simple 7-week calendar grid (49 days) aligned to real weeks (Monday-first).
+  const getMondayWeekStart = (d: Date) => {
+    const dt = new Date(d);
+    dt.setHours(0, 0, 0, 0);
+    // JS: 0=Sun..6=Sat. Convert to Monday-first index 0=Mon..6=Sun
+    const mondayIndex = (dt.getDay() + 6) % 7;
+    dt.setDate(dt.getDate() - mondayIndex);
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  };
+
+  const calendarStart = getMondayWeekStart(startDate);
+  const calendarDays = Array.from({ length: 49 }, (_, i) => addDays(calendarStart, i));
 
   const selectedDate = selectedDateIso ? parseISODate(selectedDateIso) : null;
 
