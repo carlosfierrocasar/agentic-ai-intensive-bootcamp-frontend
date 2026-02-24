@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState } from "react";
 import "./index.css";
 import { TRAINING_CATALOG } from "./trainingCatalog";
 import {
@@ -453,7 +453,8 @@ type ScheduleModule = {
   title: string;
   duration: string;
   resourceKey?: keyof typeof TRAINING_CATALOG;
-type: string;
+  type: string;
+  url?: string;
 };
 
 type ScheduleDay = {
@@ -1176,20 +1177,148 @@ type TrackKey = "engineer" | "architect";
 
 function ScheduleTab() {
   const [track, setTrack] = useState<TrackKey>("engineer");
-  const [expandedWeek, setExpandedWeek] = useState<number | null>(null);
+
+  const [learners, setLearners] = useState<Learner[]>([]);
+  const [selectedLearnerId, setSelectedLearnerId] = useState<number | null>(null);
+  const [selectedDateIso, setSelectedDateIso] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const ls = await getLearners();
+        if (cancelled) return;
+
+        setLearners(ls);
+
+        if (ls.length > 0) {
+          const pick =
+            ls.find((l) => (l.name || "").toLowerCase().includes("carlos")) ?? ls[0];
+
+          setSelectedLearnerId(pick.id);
+
+          const tr = String((pick as any).target_role ?? "").toLowerCase();
+          if (tr.includes("architect")) setTrack("architect");
+          else if (tr.includes("engineer")) setTrack("engineer");
+
+          const sd = String((pick as any).start_date ?? "").slice(0, 10);
+          setSelectedDateIso(sd || new Date().toISOString().slice(0, 10));
+        } else {
+          setSelectedDateIso(new Date().toISOString().slice(0, 10));
+        }
+      } catch (err) {
+        console.error(err);
+        setSelectedDateIso(new Date().toISOString().slice(0, 10));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const weeksForTrack: ScheduleWeek[] = (bootcampSchedule as any)[track] || [];
 
-  const toggleWeek = (weekNum: number) => {
-    setExpandedWeek((prev) => (prev === weekNum ? null : weekNum));
+  const selectedLearner =
+    learners.find((l) => l.id === selectedLearnerId) ?? (learners[0] ?? null);
+
+  const parseISODate = (isoLike: string | null | undefined) => {
+    const raw = String(isoLike ?? "").trim();
+    const iso = raw.slice(0, 10);
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+    if (!y || !mo || !d) return null;
+    const dt = new Date(y, mo - 1, d);
+    dt.setHours(0, 0, 0, 0);
+    return dt;
   };
 
-  const handleKeyToggle = (e: KeyboardEvent, weekNum: number) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleWeek(weekNum);
-    }
+  const startDate =
+    parseISODate((selectedLearner as any)?.start_date) ??
+    (() => {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+    })();
+
+  const addDays = (base: Date, days: number) => {
+    const d = new Date(base);
+    d.setDate(d.getDate() + days);
+    d.setHours(0, 0, 0, 0);
+    return d;
   };
+
+  const toISO = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  const formatShort = (d: Date) =>
+    d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+
+  const isWeekday = (d: Date) => {
+    const wd = d.getDay(); // 0 Sun ... 6 Sat
+    return wd >= 1 && wd <= 5;
+  };
+
+  // Day N counts ONLY program days (weekdays) starting at start_date.
+  const getDayN = (d: Date) => {
+    if (d.getTime() < startDate.getTime()) return null;
+
+    let count = 0;
+    const cur = new Date(startDate);
+    cur.setHours(0, 0, 0, 0);
+
+    // iterate day-by-day until we reach d (<= 49 so it's fine)
+    while (cur.getTime() <= d.getTime()) {
+      if (isWeekday(cur)) count += 1;
+      cur.setDate(cur.getDate() + 1);
+      cur.setHours(0, 0, 0, 0);
+      if (count > 35) break;
+    }
+
+    if (!isWeekday(d)) return null;
+
+    // recompute precisely without early stop
+    count = 0;
+    const cur2 = new Date(startDate);
+    cur2.setHours(0, 0, 0, 0);
+    while (cur2.getTime() <= d.getTime()) {
+      if (isWeekday(cur2)) count += 1;
+      cur2.setDate(cur2.getDate() + 1);
+      cur2.setHours(0, 0, 0, 0);
+    }
+    return count >= 1 && count <= 35 ? count : null;
+  };
+
+  const getModulesForDate = (d: Date) => {
+    const dayN = getDayN(d);
+    if (!dayN) return { dayN: null as number | null, modules: null as ScheduleModule[] | null };
+
+    const weekIndex = Math.floor((dayN - 1) / 5);
+    const dayIndex = (dayN - 1) % 5;
+
+    const week = weeksForTrack[weekIndex];
+    const day = week?.days?.[dayIndex];
+
+    return {
+      dayN,
+      modules: day?.modules ?? [],
+    };
+  };
+
+  // Build a simple 7-week calendar grid (49 days) starting on start_date.
+  const calendarDays = Array.from({ length: 49 }, (_, i) => addDays(startDate, i));
+
+  const selectedDate = selectedDateIso ? parseISODate(selectedDateIso) : null;
+
+  const selectedInfo = selectedDate ? getModulesForDate(selectedDate) : null;
 
   const trackLabel =
     track === "engineer"
@@ -1203,230 +1332,241 @@ function ScheduleTab() {
           <div>
             <h2 className="card-title">Training Schedule</h2>
             <p className="card-subtitle">
-              Weeks are designed as building blocks; each one assumes the previous
-              has been completed or validated through the placement test.
+              Select a date to view the modules for that day. Day numbers are computed from the
+              learner&apos;s <b>start_date</b>.
             </p>
+
+            <div className="muted" style={{ marginTop: "0.35rem" }}>
+              Start date: <b>{toISO(startDate)}</b>
+            </div>
           </div>
 
-          <select
-            className="select"
-            value={trackLabel}
-            onChange={(e) => {
-              const val = e.target.value;
-              const next: TrackKey =
-                val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
-              setTrack(next);
-              setExpandedWeek(null);
-            }}
-          >
-            <option>Agentic AI Engineer Track</option>
-            <option>AI Agentic Solution Architect Track</option>
-          </select>
+          <div style={{ display: "grid", gap: "0.5rem", justifyItems: "end" }}>
+            <select
+              className="select"
+              value={trackLabel}
+              onChange={(e) => {
+                const val = e.target.value;
+                const next: TrackKey =
+                  val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
+                setTrack(next);
+              }}
+            >
+              <option>Agentic AI Engineer Track</option>
+              <option>AI Agentic Solution Architect Track</option>
+            </select>
+
+            {learners.length > 0 ? (
+              <select
+                className="select"
+                value={String(selectedLearner?.id ?? "")}
+                onChange={(e) => {
+                  const id = Number(e.target.value);
+                  setSelectedLearnerId(Number.isFinite(id) ? id : null);
+                  // also move selection to the new learner's start_date
+                  const nextLearner = learners.find((l) => l.id === id);
+                  const sd = String((nextLearner as any)?.start_date ?? "").slice(0, 10);
+                  setSelectedDateIso(sd || new Date().toISOString().slice(0, 10));
+                }}
+              >
+                {learners.map((l) => (
+                  <option key={l.id} value={String(l.id)}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+          </div>
         </div>
 
-        <ol className="week-list">
-          {weeksForTrack.map((w) => {
-            const isOpen = expandedWeek === w.week;
-            const meta = `${w.dailyHours} hours/day · Assessment on Friday`;
+        <div
+          style={{
+            marginTop: "1rem",
+            display: "grid",
+            gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+            gap: "0.5rem",
+          }}
+        >
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((h) => (
+            <div
+              key={h}
+              className="muted"
+              style={{
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                textTransform: "uppercase",
+                padding: "0 0.25rem",
+              }}
+            >
+              {h}
+            </div>
+          ))}
+
+          {calendarDays.map((d) => {
+            const iso = toISO(d);
+            const isSelected = selectedDateIso === iso;
+            const dayN = getDayN(d);
+            const disabled = !dayN; // weekends / outside program days
 
             return (
-              <li
-                key={w.week}
-                className="week-item"
-                role="button"
-                tabIndex={0}
-                aria-expanded={isOpen}
-                onClick={() => toggleWeek(w.week)}
-                onKeyDown={(e) => handleKeyToggle(e, w.week)}
-                style={{ cursor: "pointer", display: "block" }}
+              <button
+                key={iso}
+                type="button"
+                className="card"
+                onClick={() => setSelectedDateIso(iso)}
+                disabled={false}
+                style={{
+                  padding: "0.6rem",
+                  borderRadius: "14px",
+                  border: isSelected
+                    ? "2px solid rgba(15, 23, 42, 0.55)"
+                    : "1px solid rgba(15, 23, 42, 0.12)",
+                  background: disabled
+                    ? "rgba(15, 23, 42, 0.03)"
+                    : "rgba(255,255,255,0.75)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  minHeight: "64px",
+                  opacity: disabled ? 0.55 : 1,
+                }}
+                aria-pressed={isSelected}
+                title={disabled ? formatShort(d) : `Day ${dayN} · ${formatShort(d)}`}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "1rem",
-                    width: "100%",
-                    minWidth: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "1rem",
-                      minWidth: 0,
-                    }}
-                  >
-                    <div className="week-number">{w.week}</div>
-                    <div style={{ minWidth: 0 }}>
-                      <div className="week-title">{w.title}</div>
-                      <div className="week-meta">{meta}</div>
-                    </div>
-                  </div>
-
-                  <div className="week-pill" style={{ whiteSpace: "nowrap" }}>
-                    Assessment on Friday
-                  </div>
-                </div>
-
-                {isOpen && (
-                  <div
-                    className="week-detail"
-                    style={{ marginTop: "1rem", width: "100%", minWidth: 0 }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
+                  <div style={{ fontWeight: 800 }}>{d.getDate()}</div>
+                  {dayN ? (
                     <div
                       style={{
-                        marginTop: "0.75rem",
-                        display: "grid",
-                        gap: "0.75rem",
-                        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-                        alignItems: "start",
-                        width: "100%",
+                        fontSize: "0.75rem",
+                        padding: "0.1rem 0.45rem",
+                        borderRadius: "999px",
+                        border: "1px solid rgba(15, 23, 42, 0.15)",
+                        background: "rgba(15, 23, 42, 0.03)",
+                        whiteSpace: "nowrap",
                       }}
-                      onClick={(e) => e.stopPropagation()}
                     >
-                      {w.days.map((d) => (
-                        <div
-                          key={d.day}
-                          style={{
-                            padding: "0.75rem",
-                            borderRadius: "14px",
-                            background: "rgba(255,255,255,0.65)",
-                            border: "1px solid rgba(15, 23, 42, 0.08)",
-                            minWidth: 0,
-                          }}
-                        >
-                          <div
-                            className="section-heading"
-                            style={{
-                              marginBottom: "0.5rem",
-                              display: "flex",
-                              alignItems: "baseline",
-                              justifyContent: "space-between",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <span>{d.day}</span>
-                            <span className="muted" style={{ fontSize: "0.8rem" }}>
-                              {d.modules.length} items
-                            </span>
-                          </div>
-
-                          <div style={{ display: "grid", gap: "0.55rem" }}>
-                            {d.modules.map((m, idx) => {
-                              const title =
-                                (m.resourceKey
-                                  ? TRAINING_CATALOG[m.resourceKey]
-                                  : undefined)?.title ?? m.title;
-
-                              const href = m.resourceKey
-                                ? TRAINING_CATALOG[m.resourceKey]?.url
-                                : "";
-                              const isInternal = [
-                                "internal-docs",
-                                "internal-lab",
-                                "internal-project",
-                                "internal-assessment",
-                              ].includes(href);
-
-                              return (
-                                <div
-                                  key={`${d.day}-${idx}`}
-                                  style={{
-                                    borderRadius: "12px",
-                                    padding: "0.55rem 0.6rem",
-                                    border: "1px solid rgba(15, 23, 42, 0.08)",
-                                    background: "rgba(15, 23, 42, 0.02)",
-                                    minWidth: 0,
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <div
-                                    style={{
-                                      fontWeight: 600,
-                                      lineHeight: 1.2,
-                                      whiteSpace: "normal",
-                                      overflowWrap: "anywhere",
-                                      wordBreak: "break-word",
-                                    }}
-                                    title={title}
-                                  >
-                                    {title}
-                                  </div>
-
-                                  <div
-                                    className="muted"
-                                    style={{
-                                      marginTop: "0.2rem",
-                                      fontSize: "0.82rem",
-                                      display: "flex",
-                                      gap: "0.5rem",
-                                      flexWrap: "wrap",
-                                      alignItems: "center",
-                                    }}
-                                  >
-                                    <span>Duration: {m.duration}</span>
-
-                                    {!href || isInternal ? null : (
-                                      <a href={href} target="_blank" rel="noreferrer">
-                                        Access →
-                                      </a>
-                                    )}
-
-                                    <span
-                                      style={{
-                                        marginLeft: "auto",
-                                        display: "inline-block",
-                                        padding: "0.15rem 0.5rem",
-                                        borderRadius: "999px",
-                                        fontSize: "0.72rem",
-                                        border: "1px solid rgba(15, 23, 42, 0.12)",
-                                        background: "rgba(15, 23, 42, 0.03)",
-                                        whiteSpace: "nowrap",
-                                      }}
-                                    >
-                                      {m.type}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
+                      Day {dayN}
                     </div>
+                  ) : (
+                    <div className="muted" style={{ fontSize: "0.75rem" }}>
+                      —
+                    </div>
+                  )}
+                </div>
 
-<div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%", gridColumn: "1 / -1" }} onClick={(e) => e.stopPropagation()}>
-                      <div className="section-heading">Week {w.week} Assessment</div>
+                <div className="muted" style={{ fontSize: "0.78rem", marginTop: "0.25rem" }}>
+                  {formatShort(d)}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {selectedDate ? (
+        <section className="card card--soft">
+          <div className="card-header-row">
+            <div>
+              <h2 className="card-title">
+                {selectedInfo?.dayN ? `Day ${selectedInfo.dayN}` : "No modules"} ·{" "}
+                {selectedDate.toLocaleDateString(undefined, {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </h2>
+              <p className="card-subtitle">
+                {selectedInfo?.dayN
+                  ? "Modules scheduled for this day."
+                  : "This date is outside the 7-week weekday schedule (or falls on a weekend)."}
+              </p>
+            </div>
+            <div className="pill-row">
+              <span className="pill pill-soft">{trackLabel}</span>
+              {selectedLearner ? (
+                <span className="pill pill-soft">Learner: {selectedLearner.name}</span>
+              ) : null}
+            </div>
+          </div>
+
+          {selectedInfo?.modules ? (
+            <div style={{ display: "grid", gap: "0.75rem", marginTop: "0.25rem" }}>
+              {selectedInfo.modules.length === 0 ? (
+                <div className="muted">No items for this day.</div>
+              ) : (
+                selectedInfo.modules.map((m, idx) => {
+                  const title =
+                    (m.resourceKey ? TRAINING_CATALOG[m.resourceKey] : undefined)?.title ??
+                    m.title;
+
+                  const href =
+                    m.url ??
+                    (m.resourceKey ? TRAINING_CATALOG[m.resourceKey]?.url : "") ??
+                    "";
+
+                  const isInternal = [
+                    "internal-docs",
+                    "internal-lab",
+                    "internal-project",
+                    "internal-assessment",
+                  ].includes(href);
+
+                  return (
+                    <div
+                      key={`${selectedDateIso}-${idx}`}
+                      style={{
+                        borderRadius: "12px",
+                        padding: "0.65rem 0.75rem",
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        background: "rgba(15, 23, 42, 0.02)",
+                      }}
+                    >
+                      <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
 
                       <div
                         className="muted"
                         style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "0.9rem",
-                          alignItems: "baseline",
                           marginTop: "0.25rem",
+                          fontSize: "0.86rem",
+                          display: "flex",
+                          gap: "0.6rem",
+                          flexWrap: "wrap",
+                          alignItems: "center",
                         }}
                       >
-                        <div>
-                          <b>Passing Score:</b> {w.assessment.passingScore}%
-                        </div>
-                        <div>
-                          <b>Topics Covered:</b> {w.assessment.topics.join(", ")}
-                        </div>
+                        <span>Duration: {m.duration}</span>
+
+                        {!href || isInternal ? null : (
+                          <a href={href} target="_blank" rel="noreferrer">
+                            Access →
+                          </a>
+                        )}
+
+                        <span
+                          style={{
+                            marginLeft: "auto",
+                            display: "inline-block",
+                            padding: "0.15rem 0.5rem",
+                            borderRadius: "999px",
+                            fontSize: "0.72rem",
+                            border: "1px solid rgba(15, 23, 42, 0.12)",
+                            background: "rgba(15, 23, 42, 0.03)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {m.type}
+                        </span>
                       </div>
                     </div>
-                  </div>
-                )}
-
-              </li>
-            );
-          })}
-        </ol>
-      </section>
+                  );
+                })
+              )}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="card card--soft-green">
         <h2 className="card-title">Resources &amp; Support</h2>
@@ -1434,8 +1574,7 @@ function ScheduleTab() {
           <div className="resource-card">
             <h3 className="section-heading">LinkedIn Learning</h3>
             <p className="muted">
-              Curated playlists aligned with each week, accessible via corporate
-              license.
+              Curated playlists aligned with each week, accessible via corporate license.
             </p>
           </div>
           <div className="resource-card">
