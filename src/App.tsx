@@ -517,7 +517,7 @@ const bootcampSchedule = {
             day: 'Friday',
             modules: [
               { title: 'Week 1 Project: Build a Simple LLM Application', duration: '4h', resourceKey: "INTERNAL_PROJECT", type: 'project' },
-              { title: 'Week 1 Assessment', duration: '2h', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment' }
+              { title: 'Week 1 Assessment', duration: '15 min', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment', url: "AQUI_PEGA_EL_LINK_DEL_EXAMEN" }
             ]
           }
         ],
