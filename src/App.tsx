@@ -449,13 +449,13 @@ function PlacementTab() {
    SCHEDULE TAB (funcional)
    ========================================================= */
 
-type ScheduleModule = {
-  title: string;
-  duration: string;
-  resourceKey?: keyof typeof TRAINING_CATALOG;
-  type: string;
-  url?: string;
-};
+   type ScheduleModule = {
+    title: string;
+    duration: string;
+    resourceKey: string;
+    type: 'video' | 'project' | 'assessment';
+    url?: string; 
+  };
 
 type ScheduleDay = {
   day: string;
@@ -518,7 +518,7 @@ const bootcampSchedule = {
             day: 'Friday',
             modules: [
               { title: 'Week 1 Project: Build a Simple LLM Application', duration: '4h', resourceKey: "INTERNAL_PROJECT", type: 'project' },
-	              { title: 'Week 1 Assessment', duration: '15 min', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment', url: "https://docs.google.com/forms/d/e/1FAIpQLSfxe2BfFIT3bFTrRitsfmbvN2X0vbE0GG6NpuQXryYfRv9-Jw/viewform?usp=header" }
+              { title: 'Week 1 Assessment', duration: '2h', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment' }
             ]
           }
         ],
@@ -866,7 +866,7 @@ const bootcampSchedule = {
             day: 'Friday',
             modules: [
               { title: 'Week 1 Project: Solution Design Document', duration: '4h', resourceKey: "INTERNAL_PROJECT", type: 'project' },
-	              { title: 'Week 1 Assessment', duration: '15 min', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment', url: "https://docs.google.com/forms/d/e/1FAIpQLSfxe2BfFIT3bFTrRitsfmbvN2X0vbE0GG6NpuQXryYfRv9-Jw/viewform?usp=header" }
+              { title: 'Week 1 Assessment', duration: '2h', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment' }
             ]
           }
         ],
@@ -1177,25 +1177,121 @@ type TrackKey = "engineer" | "architect";
 
 function ScheduleTab() {
   const [track, setTrack] = useState<TrackKey>("engineer");
-  const [expandedWeek, setExpandedWeek] = useState<number | null>(null);
+
+  // For now, we drive the calendar off a single learner's start_date
+  // (later this will come from the authenticated user).
+  const [learners, setLearners] = useState<Learner[]>([]);
+  const [selectedLearnerId, setSelectedLearnerId] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const rows = await getLearners();
+        if (!mounted) return;
+        setLearners(rows || []);
+
+        const preferred =
+          (rows || []).find((l) =>
+            String((l as any).name || "")
+              .toLowerCase()
+              .includes("carlos")
+          ) || (rows || [])[0];
+
+        const prefId = preferred ? Number((preferred as any).id) : null;
+        setSelectedLearnerId(prefId || null);
+
+        const sdRaw = preferred ? ((preferred as any).start_date as string | null) : null;
+        const sd = sdRaw ? new Date(sdRaw) : null;
+
+        // Normalize to local midnight to avoid TZ drift.
+        if (sd) {
+          const norm = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate());
+          setSelectedDate(norm);
+        } else {
+          setSelectedDate(null);
+        }
+      } catch {
+        // If API isn't available, keep a safe fallback (no learner-driven dates).
+        if (!mounted) return;
+        setLearners([]);
+        setSelectedLearnerId(null);
+        setSelectedDate(null);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const selectedLearner =
+    selectedLearnerId == null
+      ? null
+      : learners.find((l) => Number((l as any).id) === Number(selectedLearnerId)) || null;
+
+  const startDateRaw = selectedLearner ? ((selectedLearner as any).start_date as string | null) : null;
+  const startDate = startDateRaw ? new Date(startDateRaw) : null;
+  const startDateNorm =
+    startDate == null ? null : new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
 
   const weeksForTrack: ScheduleWeek[] = (bootcampSchedule as any)[track] || [];
-
-  const toggleWeek = (weekNum: number) => {
-    setExpandedWeek((prev) => (prev === weekNum ? null : weekNum));
-  };
-
-  const handleKeyToggle = (e: KeyboardEvent, weekNum: number) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleWeek(weekNum);
-    }
-  };
 
   const trackLabel =
     track === "engineer"
       ? "Agentic AI Engineer Track"
       : "AI Agentic Solution Architect Track";
+
+  // ---- Calendar math (7-week program => 49 days) ----
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  const diffDaysFromStart = (d: Date) => {
+    if (!startDateNorm) return 0;
+    const dn = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return Math.floor((dn.getTime() - startDateNorm.getTime()) / MS_PER_DAY);
+  };
+
+  const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+  const programDay = selectedDate && startDateNorm ? diffDaysFromStart(selectedDate) + 1 : null;
+
+  const programWeek = programDay != null ? clamp(Math.floor((programDay - 1) / 7) + 1, 1, 7) : 1;
+
+  // Respect start_week as offset (someone can start at Week 2/3 of the curriculum).
+  const startWeekOffset = selectedLearner ? Math.max(0, Number((selectedLearner as any).start_week || 1) - 1) : 0;
+  const curriculumWeek = clamp(programWeek + startWeekOffset, 1, 7);
+
+  const weekdayToScheduleKey = (d: Date): ScheduleDay["day"] | null => {
+    const w = d.getDay(); // 0=Sun..6=Sat
+    if (w === 0 || w === 6) return null;
+    return (["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const)[w - 1];
+  };
+
+  const weekObj = weeksForTrack.find((w) => Number(w.week) === Number(curriculumWeek)) || null;
+
+  const dayKey = selectedDate ? weekdayToScheduleKey(selectedDate) : null;
+  const dayObj =
+    weekObj && dayKey ? weekObj.days.find((d) => d.day === dayKey) || null : null;
+
+  const selectedModules = dayObj ? dayObj.modules : [];
+
+  const fmt = (d: Date) =>
+    d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+  const buildCalendarDates = () => {
+    if (!startDateNorm) return [];
+    const out: Date[] = [];
+    for (let i = 0; i < 49; i++) {
+      out.push(new Date(startDateNorm.getTime() + i * MS_PER_DAY));
+    }
+    return out;
+  };
+
+  const calendarDates = buildCalendarDates();
+  const calendarSelectedTime = selectedDate ? selectedDate.getTime() : null;
+
+  const canRenderCalendar = Boolean(startDateNorm && selectedDate);
 
   return (
     <div className="grid gap-lg">
@@ -1204,230 +1300,245 @@ function ScheduleTab() {
           <div>
             <h2 className="card-title">Training Schedule</h2>
             <p className="card-subtitle">
-              Weeks are designed as building blocks; each one assumes the previous
-              has been completed or validated through the placement test.
+              Select a date to see the courses for that day. (Day numbers are based on the learner start date.)
             </p>
           </div>
 
-          <select
-            className="select"
-            value={trackLabel}
-            onChange={(e) => {
-              const val = e.target.value;
-              const next: TrackKey =
-                val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
-              setTrack(next);
-              setExpandedWeek(null);
-            }}
-          >
-            <option>Agentic AI Engineer Track</option>
-            <option>AI Agentic Solution Architect Track</option>
-          </select>
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+            <select
+              className="select"
+              value={trackLabel}
+              onChange={(e) => {
+                const val = e.target.value;
+                const next: TrackKey =
+                  val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
+                setTrack(next);
+              }}
+            >
+              <option>Agentic AI Engineer Track</option>
+              <option>AI Agentic Solution Architect Track</option>
+            </select>
+
+            <select
+              className="select"
+              value={selectedLearnerId ?? ""}
+              onChange={(e) => {
+                const id = Number(e.target.value || 0) || null;
+                setSelectedLearnerId(id);
+
+                const l = learners.find((x) => Number((x as any).id) === Number(id)) || null;
+                const sdRaw = l ? ((l as any).start_date as string | null) : null;
+                const sd = sdRaw ? new Date(sdRaw) : null;
+                if (sd) {
+                  const norm = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate());
+                  setSelectedDate(norm);
+                } else {
+                  setSelectedDate(null);
+                }
+              }}
+              style={{ minWidth: "220px" }}
+            >
+              {learners.length ? null : <option value="">(No learners loaded)</option>}
+              {learners.map((l) => (
+                <option key={(l as any).id} value={(l as any).id}>
+                  {String((l as any).name || "Learner")}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <ol className="week-list">
-          {weeksForTrack.map((w) => {
-            const isOpen = expandedWeek === w.week;
-            const meta = `${w.dailyHours} hours/day · Assessment on Friday`;
+        {!canRenderCalendar ? (
+          <div className="note" style={{ marginTop: "0.75rem" }}>
+            To show the calendar, the selected learner needs a <b>start_date</b>.
+          </div>
+        ) : (
+          <div style={{ marginTop: "0.75rem" }}>
+            {/* 7-week calendar grid (program duration) */}
+            <div className="schedule-calendar">
+              <div className="schedule-calendar-head">
+                <div className="muted">
+                  Start date: <b>{startDateNorm ? fmt(startDateNorm) : "—"}</b>
+                </div>
+                <div className="muted">
+                  Selected: <b>{selectedDate ? fmt(selectedDate) : "—"}</b>
+                </div>
+              </div>
 
-            return (
-              <li
-                key={w.week}
-                className="week-item"
-                role="button"
-                tabIndex={0}
-                aria-expanded={isOpen}
-                onClick={() => toggleWeek(w.week)}
-                onKeyDown={(e) => handleKeyToggle(e, w.week)}
-                style={{ cursor: "pointer", display: "block" }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "1rem",
-                    width: "100%",
-                    minWidth: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "1rem",
-                      minWidth: 0,
-                    }}
-                  >
-                    <div className="week-number">{w.week}</div>
-                    <div style={{ minWidth: 0 }}>
-                      <div className="week-title">{w.title}</div>
-                      <div className="week-meta">{meta}</div>
+              <div className="schedule-calendar-grid">
+                {calendarDates.map((d) => {
+                  const isSelected = calendarSelectedTime === d.getTime();
+                  const dd = diffDaysFromStart(d);
+                  const dayN = dd + 1;
+                  const wkN = clamp(Math.floor(dd / 7) + 1, 1, 7);
+
+                  const isOutOfProgram = dayN < 1 || dayN > 49;
+                  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+
+                  return (
+                    <button
+                      key={d.toISOString()}
+                      type="button"
+                      className={`schedule-cal-cell ${isSelected ? "schedule-cal-cell--active" : ""}`}
+                      onClick={() => setSelectedDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()))}
+                      title={`${fmt(d)} · Day ${dayN} · Week ${wkN}`}
+                      disabled={isOutOfProgram}
+                    >
+                      <div className="schedule-cal-cell-top">
+                        <span className="schedule-cal-date">{d.getDate()}</span>
+                        <span className="schedule-cal-week">W{wkN}</span>
+                      </div>
+                      <div className={`schedule-cal-meta ${isWeekend ? "schedule-cal-meta--weekend" : ""}`}>
+                        Day {dayN}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Day detail card */}
+            <div style={{ marginTop: "1rem" }}>
+              <div className="week-detail" style={{ width: "100%" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+                  <div>
+                    <div className="section-heading" style={{ marginBottom: "0.25rem" }}>
+                      {programDay != null ? `Day ${programDay}` : "Day —"} · {selectedDate ? fmt(selectedDate) : "—"}
+                    </div>
+                    <div className="muted" style={{ marginTop: 0 }}>
+                      Curriculum Week <b>{curriculumWeek}</b>
+                      {weekObj ? ` · ${weekObj.title}` : ""}
+                      {dayKey ? ` · ${dayKey}` : " · (Weekend)"}
                     </div>
                   </div>
 
-                  <div className="week-pill" style={{ whiteSpace: "nowrap" }}>
-                    Assessment on Friday
-                  </div>
+                  {dayKey === "Friday" ? (
+                    <div className="week-pill" style={{ whiteSpace: "nowrap", alignSelf: "flex-start" }}>
+                      Assessment on Friday
+                    </div>
+                  ) : null}
                 </div>
 
-                {isOpen && (
-                  <div
-                    className="week-detail"
-                    style={{ marginTop: "1rem", width: "100%", minWidth: 0 }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div
-                      style={{
-                        marginTop: "0.75rem",
-                        display: "grid",
-                        gap: "0.75rem",
-                        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-                        alignItems: "start",
-                        width: "100%",
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {w.days.map((d) => (
+                <div style={{ marginTop: "0.75rem", display: "grid", gap: "0.55rem" }}>
+                  {selectedModules.length ? (
+                    selectedModules.map((m, idx) => {
+                      const title =
+                        (m.resourceKey ? TRAINING_CATALOG[m.resourceKey] : undefined)?.title ?? m.title;
+
+                      const href =
+                        (m.url ?? (m.resourceKey ? TRAINING_CATALOG[m.resourceKey]?.url : "")) ?? "";
+
+                      const isInternal = [
+                        "internal-docs",
+                        "internal-lab",
+                        "internal-project",
+                        "internal-assessment",
+                      ].includes(href);
+
+                      return (
                         <div
-                          key={d.day}
+                          key={`${String(dayKey)}-${idx}`}
                           style={{
-                            padding: "0.75rem",
-                            borderRadius: "14px",
-                            background: "rgba(255,255,255,0.65)",
+                            borderRadius: "12px",
+                            padding: "0.65rem 0.75rem",
                             border: "1px solid rgba(15, 23, 42, 0.08)",
+                            background: "rgba(15, 23, 42, 0.02)",
                             minWidth: 0,
                           }}
                         >
                           <div
-                            className="section-heading"
                             style={{
-                              marginBottom: "0.5rem",
+                              fontWeight: 600,
+                              lineHeight: 1.2,
+                              whiteSpace: "normal",
+                              overflowWrap: "anywhere",
+                              wordBreak: "break-word",
+                            }}
+                            title={title}
+                          >
+                            {title}
+                          </div>
+
+                          <div
+                            className="muted"
+                            style={{
+                              marginTop: "0.25rem",
+                              fontSize: "0.82rem",
                               display: "flex",
-                              alignItems: "baseline",
-                              justifyContent: "space-between",
                               gap: "0.5rem",
+                              flexWrap: "wrap",
+                              alignItems: "center",
                             }}
                           >
-                            <span>{d.day}</span>
-                            <span className="muted" style={{ fontSize: "0.8rem" }}>
-                              {d.modules.length} items
+                            <span>Duration: {m.duration}</span>
+
+                            {!href || isInternal ? null : (
+                              <a href={href} target="_blank" rel="noreferrer">
+                                Access →
+                              </a>
+                            )}
+
+                            <span
+                              style={{
+                                marginLeft: "auto",
+                                display: "inline-block",
+                                padding: "0.15rem 0.5rem",
+                                borderRadius: "999px",
+                                fontSize: "0.72rem",
+                                border: "1px solid rgba(15, 23, 42, 0.12)",
+                                background: "rgba(15, 23, 42, 0.03)",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {m.type}
                             </span>
                           </div>
-
-                          <div style={{ display: "grid", gap: "0.55rem" }}>
-                            {d.modules.map((m, idx) => {
-                              const title =
-                                (m.resourceKey
-                                  ? TRAINING_CATALOG[m.resourceKey]
-                                  : undefined)?.title ?? m.title;
-
-								  const href =
-								    (m.url ??
-								      (m.resourceKey ? TRAINING_CATALOG[m.resourceKey]?.url : "")) ??
-								    "";
-                              const isInternal = [
-                                "internal-docs",
-                                "internal-lab",
-                                "internal-project",
-                                "internal-assessment",
-                              ].includes(href);
-
-                              return (
-                                <div
-                                  key={`${d.day}-${idx}`}
-                                  style={{
-                                    borderRadius: "12px",
-                                    padding: "0.55rem 0.6rem",
-                                    border: "1px solid rgba(15, 23, 42, 0.08)",
-                                    background: "rgba(15, 23, 42, 0.02)",
-                                    minWidth: 0,
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <div
-                                    style={{
-                                      fontWeight: 600,
-                                      lineHeight: 1.2,
-                                      whiteSpace: "normal",
-                                      overflowWrap: "anywhere",
-                                      wordBreak: "break-word",
-                                    }}
-                                    title={title}
-                                  >
-                                    {title}
-                                  </div>
-
-                                  <div
-                                    className="muted"
-                                    style={{
-                                      marginTop: "0.2rem",
-                                      fontSize: "0.82rem",
-                                      display: "flex",
-                                      gap: "0.5rem",
-                                      flexWrap: "wrap",
-                                      alignItems: "center",
-                                    }}
-                                  >
-                                    <span>Duration: {m.duration}</span>
-
-                                    {!href || isInternal ? null : (
-                                      <a href={href} target="_blank" rel="noreferrer">
-                                        Access →
-                                      </a>
-                                    )}
-
-                                    <span
-                                      style={{
-                                        marginLeft: "auto",
-                                        display: "inline-block",
-                                        padding: "0.15rem 0.5rem",
-                                        borderRadius: "999px",
-                                        fontSize: "0.72rem",
-                                        border: "1px solid rgba(15, 23, 42, 0.12)",
-                                        background: "rgba(15, 23, 42, 0.03)",
-                                        whiteSpace: "nowrap",
-                                      }}
-                                    >
-                                      {m.type}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
                         </div>
-                      ))}
+                      );
+                    })
+                  ) : (
+                    <div className="note">
+                      {dayKey == null
+                        ? "No courses scheduled on weekends."
+                        : "No modules found for this day."}
                     </div>
+                  )}
+                </div>
 
-<div style={{ marginTop: "1rem", width: "100%", flexBasis: "100%", gridColumn: "1 / -1" }} onClick={(e) => e.stopPropagation()}>
-                      <div className="section-heading">Week {w.week} Assessment</div>
+                {weekObj ? (
+                  <div
+                    style={{
+                      marginTop: "1rem",
+                      width: "100%",
+                      flexBasis: "100%",
+                      gridColumn: "1 / -1",
+                    }}
+                  >
+                    <div className="section-heading">Week {weekObj.week} Assessment</div>
 
-                      <div
-                        className="muted"
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "0.9rem",
-                          alignItems: "baseline",
-                          marginTop: "0.25rem",
-                        }}
-                      >
-                        <div>
-                          <b>Passing Score:</b> {w.assessment.passingScore}%
-                        </div>
-                        <div>
-                          <b>Topics Covered:</b> {w.assessment.topics.join(", ")}
-                        </div>
+                    <div
+                      className="muted"
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.9rem",
+                        alignItems: "baseline",
+                        marginTop: "0.25rem",
+                      }}
+                    >
+                      <div>
+                        <b>Passing Score:</b> {weekObj.assessment.passingScore}%
+                      </div>
+                      <div>
+                        <b>Topics Covered:</b> {weekObj.assessment.topics.join(", ")}
                       </div>
                     </div>
                   </div>
-                )}
-
-              </li>
-            );
-          })}
-        </ol>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="card card--soft-green">
@@ -1461,6 +1572,7 @@ function ScheduleTab() {
     </div>
   );
 }
+
 
 
 /* =========================================================
