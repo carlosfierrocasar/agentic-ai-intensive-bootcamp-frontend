@@ -1252,6 +1252,10 @@ function ScheduleTab() {
     return d;
   };
 
+  // End of the 7-week (49-day) program window shown in the calendar
+  const programEnd = addDays(startDate, 48);
+
+
   const toISO = (d: Date) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
