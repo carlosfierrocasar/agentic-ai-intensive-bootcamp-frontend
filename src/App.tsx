@@ -1321,9 +1321,9 @@ function ScheduleTab() {
                                   ? TRAINING_CATALOG[m.resourceKey]
                                   : undefined)?.title ?? m.title;
 
-                              const href = m.resourceKey
+                              const href = m.url ?? (m.resourceKey
                                 ? TRAINING_CATALOG[m.resourceKey]?.url
-                                : "";
+                                : "");
                               const isInternal = [
                                 "internal-docs",
                                 "internal-lab",
