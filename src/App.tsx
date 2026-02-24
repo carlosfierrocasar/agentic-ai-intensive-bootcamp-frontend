@@ -1203,13 +1203,13 @@ function ScheduleTab() {
           else if (tr.includes("engineer")) setTrack("engineer");
 
           const sd = String((pick as any).start_date ?? "").slice(0, 10);
-          setSelectedDateIso(sd || new Date().toISOString().slice(0, 10));
+          setSelectedDateIso(sd || todayISO());
         } else {
-          setSelectedDateIso(new Date().toISOString().slice(0, 10));
+          setSelectedDateIso(todayISO());
         }
       } catch (err) {
         console.error(err);
-        setSelectedDateIso(new Date().toISOString().slice(0, 10));
+        setSelectedDateIso(todayISO());
       }
     })();
 
@@ -1257,6 +1257,13 @@ function ScheduleTab() {
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
+  };
+
+
+  const todayISO = () => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return toISO(d);
   };
 
   const formatShort = (d: Date) =>
@@ -1327,7 +1334,8 @@ function ScheduleTab() {
 
   return (
     <div className="grid gap-lg">
-      <section className="card card--soft">
+      <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+      <section className="card card--soft" style={{ flex: "0 0 52%", maxWidth: "52%" }}>
         <div className="schedule-header">
           <div>
             <h2 className="card-title">Training Schedule</h2>
@@ -1366,7 +1374,7 @@ function ScheduleTab() {
                   // also move selection to the new learner's start_date
                   const nextLearner = learners.find((l) => l.id === id);
                   const sd = String((nextLearner as any)?.start_date ?? "").slice(0, 10);
-                  setSelectedDateIso(sd || new Date().toISOString().slice(0, 10));
+                  setSelectedDateIso(sd || todayISO());
                 }}
               >
                 {learners.map((l) => (
@@ -1387,7 +1395,7 @@ function ScheduleTab() {
             gap: "0.5rem",
           }}
         >
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((h) => (
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((h) => (
             <div
               key={h}
               className="muted"
@@ -1407,7 +1415,8 @@ function ScheduleTab() {
             const iso = toISO(d);
             const isSelected = selectedDateIso === iso;
             const dayN = getDayN(d);
-            const disabled = !dayN; // weekends / outside program days
+            const outsideProgram = d.getTime() < startDate.getTime() || d.getTime() > programEnd.getTime();
+            const disabled = outsideProgram;
 
             return (
               <button
@@ -1415,7 +1424,7 @@ function ScheduleTab() {
                 type="button"
                 className="card"
                 onClick={() => setSelectedDateIso(iso)}
-                disabled={false}
+                disabled={disabled}
                 style={{
                   padding: "0.6rem",
                   borderRadius: "14px",
@@ -1425,13 +1434,13 @@ function ScheduleTab() {
                   background: disabled
                     ? "rgba(15, 23, 42, 0.03)"
                     : "rgba(255,255,255,0.75)",
-                  cursor: "pointer",
+                  cursor: disabled ? "not-allowed" : "pointer",
                   textAlign: "left",
                   minHeight: "64px",
                   opacity: disabled ? 0.55 : 1,
                 }}
                 aria-pressed={isSelected}
-                title={disabled ? formatShort(d) : `Day ${dayN} · ${formatShort(d)}`}
+                title={outsideProgram ? formatShort(d) : dayN ? `Day ${dayN} · ${formatShort(d)}` : formatShort(d)}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
                   <div style={{ fontWeight: 800 }}>{d.getDate()}</div>
@@ -1465,7 +1474,7 @@ function ScheduleTab() {
       </section>
 
       {selectedDate ? (
-        <section className="card card--soft">
+        <section className="card card--soft" style={{ flex: "1 1 48%" }}>
           <div className="card-header-row">
             <div>
               <h2 className="card-title">
@@ -1567,6 +1576,7 @@ function ScheduleTab() {
           ) : null}
         </section>
       ) : null}
+    </div>
 
       <section className="card card--soft-green">
         <h2 className="card-title">Resources &amp; Support</h2>
