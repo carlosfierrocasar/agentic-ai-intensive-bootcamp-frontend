@@ -1252,11 +1252,24 @@ function ScheduleTab() {
     return d;
   };
 
-  // End of the 7-week (49-day) program window shown in the calendar
-  const programEnd = addDays(startDate, 48);
+  // Program runs 7 weeks of weekdays (Mon–Fri) => 35 program days.
+  // Compute the last program day as start_date + 34 weekdays (Day 35).
+  const addWeekdays = (base: Date, weekdaysToAdd: number) => {
+    const d = new Date(base);
+    d.setHours(0, 0, 0, 0);
+    let added = 0;
+    while (added < weekdaysToAdd) {
+      d.setDate(d.getDate() + 1);
+      const dow = d.getDay();
+      // 0=Sun, 6=Sat
+      if (dow !== 0 && dow !== 6) added += 1;
+    }
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
 
-
-  const toISO = (d: Date) => {
+  const programEnd = addWeekdays(startDate, 34);
+const toISO = (d: Date) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
@@ -1335,8 +1348,13 @@ function ScheduleTab() {
     return dt;
   };
 
-  const calendarStart = getMondayWeekStart(startDate);
-  const calendarDays = Array.from({ length: 35 }, (_, i) => {
+    const calendarStart = getMondayWeekStart(startDate);
+  // Include padding weekdays before start_date and after Day 35 to complete full Mon–Fri rows.
+  const lastProgramDay = programEnd;
+  const calendarEndFriday = addDays(getMondayWeekStart(lastProgramDay), 4); // Friday of last program week
+  const weeksCount =
+    Math.floor((calendarEndFriday.getTime() - calendarStart.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+  const calendarDays = Array.from({ length: weeksCount * 5 }, (_, i) => {
     const week = Math.floor(i / 5);
     const dow = i % 5; // 0=Mon ... 4=Fri
     return addDays(calendarStart, week * 7 + dow);
