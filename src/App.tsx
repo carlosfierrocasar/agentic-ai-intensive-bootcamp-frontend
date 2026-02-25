@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import "./index.css";
 import { TRAINING_CATALOG } from "./trainingCatalog";
 import {
@@ -1175,200 +1175,220 @@ const bootcampSchedule = {
 
 type TrackKey = "engineer" | "architect";
 
+
 function ScheduleTab() {
   const [track, setTrack] = useState<TrackKey>("engineer");
 
+  // Drive the calendar off a single learner's start_date (later: authenticated user).
   const [learners, setLearners] = useState<Learner[]>([]);
   const [selectedLearnerId, setSelectedLearnerId] = useState<number | null>(null);
-  const [selectedDateIso, setSelectedDateIso] = useState<string | null>(null);
+
+  // Store selected date as an ISO key (YYYY-MM-DD) to avoid timezone drift.
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let mounted = true;
 
     (async () => {
       try {
-        const ls = await getLearners();
-        if (cancelled) return;
+        const rows = await getLearners();
+        if (!mounted) return;
 
-        setLearners(ls);
+        setLearners(rows || []);
 
-        if (ls.length > 0) {
-          const pick =
-            ls.find((l) => (l.name || "").toLowerCase().includes("carlos")) ?? ls[0];
+        const preferred =
+          (rows || []).find((l) =>
+            String((l as any).name || "").toLowerCase().includes("carlos")
+          ) || (rows || [])[0];
 
-          setSelectedLearnerId(pick.id);
+        const prefId = preferred ? Number((preferred as any).id) : null;
+        setSelectedLearnerId(prefId || null);
 
-          const tr = String((pick as any).target_role ?? "").toLowerCase();
-          if (tr.includes("architect")) setTrack("architect");
-          else if (tr.includes("engineer")) setTrack("engineer");
-
-          const sd = String((pick as any).start_date ?? "").slice(0, 10);
-          setSelectedDateIso(sd || todayISO());
+        const sdRaw = preferred ? ((preferred as any).start_date as string | null) : null;
+        if (sdRaw) {
+          // Keep only date part to avoid TZ issues (YYYY-MM-DD).
+          const key = String(sdRaw).slice(0, 10);
+          setSelectedDateKey(key);
         } else {
-          setSelectedDateIso(todayISO());
+          setSelectedDateKey(null);
         }
-      } catch (err) {
-        console.error(err);
-        setSelectedDateIso(todayISO());
+      } catch {
+        if (!mounted) return;
+        setLearners([]);
+        setSelectedLearnerId(null);
+        setSelectedDateKey(null);
       }
     })();
 
     return () => {
-      cancelled = true;
+      mounted = false;
     };
   }, []);
 
-  const weeksForTrack: ScheduleWeek[] = (bootcampSchedule as any)[track] || [];
-
   const selectedLearner =
-    learners.find((l) => l.id === selectedLearnerId) ?? (learners[0] ?? null);
+    selectedLearnerId == null
+      ? null
+      : learners.find((l) => Number((l as any).id) === Number(selectedLearnerId)) || null;
 
-  const parseISODate = (isoLike: string | null | undefined) => {
-    const raw = String(isoLike ?? "").trim();
-    const iso = raw.slice(0, 10);
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-    if (!m) return null;
-    const y = Number(m[1]);
-    const mo = Number(m[2]);
-    const d = Number(m[3]);
-    if (!y || !mo || !d) return null;
-    const dt = new Date(y, mo - 1, d);
-    dt.setHours(0, 0, 0, 0);
-    return dt;
+  const startDateRaw = selectedLearner
+    ? ((selectedLearner as any).start_date as string | null)
+    : null;
+
+  const startKey = startDateRaw ? String(startDateRaw).slice(0, 10) : null;
+
+  const parseKeyToLocalDate = (key: string) => {
+    // key: YYYY-MM-DD
+    const [y, m, d] = key.split("-").map((x) => Number(x));
+    return new Date(y, (m || 1) - 1, d || 1);
   };
 
-  const startDate =
-    parseISODate((selectedLearner as any)?.start_date) ??
-    (() => {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      return d;
-    })();
-
-  const addDays = (base: Date, days: number) => {
-    const d = new Date(base);
-    d.setDate(d.getDate() + days);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  };
-
-  // End of the 7-week (49-day) program window shown in the calendar
-  const programEnd = addDays(startDate, 48);
-
-
-  const toISO = (d: Date) => {
+  const dateToKey = (d: Date) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
   };
 
+  const startDate = startKey ? parseKeyToLocalDate(startKey) : null;
 
-  const todayISO = () => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return toISO(d);
-  };
-
-  const formatShort = (d: Date) =>
-    d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-
-  const isWeekday = (d: Date) => {
-    const wd = d.getDay(); // 0 Sun ... 6 Sat
-    return wd >= 1 && wd <= 5;
-  };
-
-  // Day N counts ONLY program days (weekdays) starting at start_date.
-  const getDayN = (d: Date) => {
-    if (d.getTime() < startDate.getTime()) return null;
-
-    let count = 0;
-    const cur = new Date(startDate);
-    cur.setHours(0, 0, 0, 0);
-
-    // iterate day-by-day until we reach d (<= 49 so it's fine)
-    while (cur.getTime() <= d.getTime()) {
-      if (isWeekday(cur)) count += 1;
-      cur.setDate(cur.getDate() + 1);
-      cur.setHours(0, 0, 0, 0);
-      if (count > 35) break;
+  // Ensure selected date defaults to start_date (and stays within program weekdays).
+  useEffect(() => {
+    if (!startKey) return;
+    if (!selectedDateKey) {
+      setSelectedDateKey(startKey);
+      return;
     }
+  }, [startKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (!isWeekday(d)) return null;
-
-    // recompute precisely without early stop
-    count = 0;
-    const cur2 = new Date(startDate);
-    cur2.setHours(0, 0, 0, 0);
-    while (cur2.getTime() <= d.getTime()) {
-      if (isWeekday(cur2)) count += 1;
-      cur2.setDate(cur2.getDate() + 1);
-      cur2.setHours(0, 0, 0, 0);
-    }
-    return count >= 1 && count <= 35 ? count : null;
-  };
-
-  const getModulesForDate = (d: Date) => {
-    const dayN = getDayN(d);
-    if (!dayN) return { dayN: null as number | null, modules: null as ScheduleModule[] | null };
-
-    const weekIndex = Math.floor((dayN - 1) / 5);
-    const dayIndex = (dayN - 1) % 5;
-
-    const week = weeksForTrack[weekIndex];
-    const day = week?.days?.[dayIndex];
-
-    return {
-      dayN,
-      modules: day?.modules ?? [],
-    };
-  };
-
-  // Build a simple 7-week calendar grid (49 days) aligned to real weeks (Monday-first).
-  const getMondayWeekStart = (d: Date) => {
-    const dt = new Date(d);
-    dt.setHours(0, 0, 0, 0);
-    // JS: 0=Sun..6=Sat. Convert to Monday-first index 0=Mon..6=Sun
-    const mondayIndex = (dt.getDay() + 6) % 7;
-    dt.setDate(dt.getDate() - mondayIndex);
-    dt.setHours(0, 0, 0, 0);
-    return dt;
-  };
-
-  const calendarStart = getMondayWeekStart(startDate);
-  const calendarDays = Array.from({ length: 35 }, (_, i) => {
-    const week = Math.floor(i / 5);
-    const dow = i % 5; // 0=Mon ... 4=Fri
-    return addDays(calendarStart, week * 7 + dow);
-  });
-
-  const selectedDate = selectedDateIso ? parseISODate(selectedDateIso) : null;
-
-  const selectedInfo = selectedDate ? getModulesForDate(selectedDate) : null;
+  const weeksForTrack: ScheduleWeek[] = (bootcampSchedule as any)[track] || [];
 
   const trackLabel =
     track === "engineer"
       ? "Agentic AI Engineer Track"
       : "AI Agentic Solution Architect Track";
 
+  const weekdayToScheduleKey = (d: Date): ScheduleDay["day"] | null => {
+    const w = d.getDay(); // 0=Sun..6=Sat
+    if (w === 0 || w === 6) return null;
+    return (["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const)[w - 1];
+  };
+
+  const isWeekday = (d: Date) => {
+    const w = d.getDay();
+    return w >= 1 && w <= 5;
+  };
+
+  const addDays = (d: Date, days: number) => {
+    const nd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    nd.setDate(nd.getDate() + days);
+    return nd;
+  };
+
+  const getMonday = (d: Date) => {
+    const w = d.getDay(); // 0..6
+    const delta = w === 0 ? -6 : 1 - w; // move back to Monday
+    return addDays(d, delta);
+  };
+
+  const getFriday = (d: Date) => {
+    const w = d.getDay(); // 0..6
+    const delta = w === 0 ? -2 : 5 - w; // move to Friday of same week
+    return addDays(d, delta);
+  };
+
+  // Build exactly 35 program weekdays (7 weeks * Mon-Fri) starting from start_date.
+  const buildProgramWeekdays = () => {
+    if (!startDate) return [] as Date[];
+    const out: Date[] = [];
+    let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    while (out.length < 35) {
+      if (isWeekday(cursor)) out.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()));
+      cursor = addDays(cursor, 1);
+    }
+    return out;
+  };
+
+  const programWeekdays = buildProgramWeekdays();
+
+  // Map YYYY-MM-DD => {dayN, weekN}
+  const dayMap = new Map<string, { dayN: number; weekN: number }>();
+  programWeekdays.forEach((d, idx) => {
+    const dayN = idx + 1;
+    const weekN = Math.floor((dayN - 1) / 5) + 1;
+    dayMap.set(dateToKey(d), { dayN, weekN });
+  });
+
+  const programStart = startDate ? new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()) : null;
+  const programLast = programWeekdays.length ? programWeekdays[programWeekdays.length - 1] : null;
+
+  const calendarStart = programStart ? getMonday(programStart) : null;
+  const calendarEnd = programLast ? getFriday(programLast) : null;
+
+  const buildCalendarGridWeekdays = () => {
+    if (!calendarStart || !calendarEnd) return [] as Date[];
+    const out: Date[] = [];
+    let cursor = new Date(calendarStart.getFullYear(), calendarStart.getMonth(), calendarStart.getDate());
+    while (cursor.getTime() <= calendarEnd.getTime()) {
+      if (isWeekday(cursor)) out.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()));
+      cursor = addDays(cursor, 1);
+    }
+    return out;
+  };
+
+  const calendarDates = buildCalendarGridWeekdays();
+
+  const selectedDate =
+    selectedDateKey ? parseKeyToLocalDate(selectedDateKey) : null;
+
+  // If the selected date is not a program weekday (e.g. weekend), snap to the first program day.
+  useEffect(() => {
+    if (!startKey) return;
+    if (!selectedDateKey) return;
+    const info = dayMap.get(selectedDateKey);
+    if (!info) {
+      setSelectedDateKey(startKey);
+    }
+  }, [startKey, selectedDateKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectedInfo = selectedDateKey ? dayMap.get(selectedDateKey) : null;
+  const programDay = selectedInfo ? selectedInfo.dayN : null;
+  const programWeek = selectedInfo ? selectedInfo.weekN : 1;
+
+  // Respect start_week as offset (someone can start at Week 2/3 of the curriculum).
+  const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+  const startWeekOffset = selectedLearner
+    ? Math.max(0, Number((selectedLearner as any).start_week || 1) - 1)
+    : 0;
+  const curriculumWeek = clamp(programWeek + startWeekOffset, 1, 7);
+
+  const weekObj =
+    weeksForTrack.find((w) => Number(w.week) === Number(curriculumWeek)) || null;
+
+  const dayKey = selectedDate ? weekdayToScheduleKey(selectedDate) : null;
+  const dayObj =
+    weekObj && dayKey ? weekObj.days.find((d) => d.day === dayKey) || null : null;
+
+  const selectedModules = dayObj ? dayObj.modules : [];
+
+  const fmt = (d: Date) =>
+    d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+  const canRenderCalendar = Boolean(startDate && calendarDates.length);
+
+  const weekdayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
   return (
     <div className="grid gap-lg">
-      <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-      <section className="card card--soft" style={{ flex: "0 0 52%", maxWidth: "52%" }}>
+      <section className="card card--soft">
         <div className="schedule-header">
           <div>
             <h2 className="card-title">Training Schedule</h2>
             <p className="card-subtitle">
-              Select a date to view the modules for that day. Day numbers are computed from the
-              learner&apos;s <b>start_date</b>.
+              Click a date to see that day’s courses. (Day numbers are based on the learner start date.)
             </p>
-
-            <div className="muted" style={{ marginTop: "0.35rem" }}>
-              Start date: <b>{toISO(startDate)}</b>
-            </div>
           </div>
 
-          <div style={{ display: "grid", gap: "0.5rem", justifyItems: "end" }}>
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
             <select
               className="select"
               value={trackLabel}
@@ -1383,248 +1403,212 @@ function ScheduleTab() {
               <option>AI Agentic Solution Architect Track</option>
             </select>
 
-            {learners.length > 0 ? (
-              <select
-                className="select"
-                value={String(selectedLearner?.id ?? "")}
-                onChange={(e) => {
-                  const id = Number(e.target.value);
-                  setSelectedLearnerId(Number.isFinite(id) ? id : null);
-                  // also move selection to the new learner's start_date
-                  const nextLearner = learners.find((l) => l.id === id);
-                  const sd = String((nextLearner as any)?.start_date ?? "").slice(0, 10);
-                  setSelectedDateIso(sd || todayISO());
-                }}
-              >
-                {learners.map((l) => (
-                  <option key={l.id} value={String(l.id)}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-            ) : null}
+            <select
+              className="select"
+              value={selectedLearnerId ?? ""}
+              onChange={(e) => {
+                const id = Number(e.target.value || 0) || null;
+                setSelectedLearnerId(id);
+
+                const l = learners.find((x) => Number((x as any).id) === Number(id)) || null;
+                const sdRaw = l ? ((l as any).start_date as string | null) : null;
+                const key = sdRaw ? String(sdRaw).slice(0, 10) : null;
+                setSelectedDateKey(key);
+              }}
+              style={{ minWidth: "220px" }}
+            >
+              {learners.length ? null : <option value="">(No learners loaded)</option>}
+              {learners.map((l) => (
+                <option key={(l as any).id} value={(l as any).id}>
+                  {String((l as any).name || "Learner")}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        <div
-          style={{
-            marginTop: "1rem",
-            display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-            gap: "0.5rem",
-          }}
-        >
-          {["Mon", "Tue", "Wed", "Thu", "Fri"].map((h) => (
+        {!canRenderCalendar ? (
+          <div className="note" style={{ marginTop: "0.75rem" }}>
+            To show the calendar, the selected learner needs a <b>start_date</b>.
+          </div>
+        ) : (
+          <div style={{ marginTop: "0.75rem" }}>
             <div
-              key={h}
-              className="muted"
               style={{
-                fontSize: "0.78rem",
-                fontWeight: 700,
-                letterSpacing: "0.02em",
-                textTransform: "uppercase",
-                padding: "0 0.25rem",
+                display: "grid",
+                gridTemplateColumns: "minmax(320px, 1fr) minmax(320px, 1fr)",
+                gap: "1rem",
+                alignItems: "start",
               }}
             >
-              {h}
-            </div>
-          ))}
+              {/* Left: Calendar */}
+              <div className="schedule-calendar">
+                <div className="schedule-calendar-head">
+                  <div className="muted">
+                    Start date: <b>{startDate ? fmt(startDate) : "—"}</b>
+                  </div>
+                  <div className="muted">
+                    Selected: <b>{selectedDate ? fmt(selectedDate) : "—"}</b>
+                  </div>
+                </div>
 
-          {calendarDays.map((d) => {
-            const iso = toISO(d);
-            const isSelected = selectedDateIso === iso;
-            const dayN = getDayN(d);
-            const outsideProgram = d.getTime() < startDate.getTime() || d.getTime() > programEnd.getTime();
-            const disabled = outsideProgram;
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+                    gap: "0.5rem",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  {weekdayHeaders.map((h) => (
+                    <div key={h} className="muted" style={{ fontWeight: 600, textAlign: "center" }}>
+                      {h}
+                    </div>
+                  ))}
+                </div>
 
-            return (
-              <button
-                key={iso}
-                type="button"
-                className="card"
-                onClick={() => setSelectedDateIso(iso)}
-                disabled={disabled}
-                style={{
-                  padding: "0.6rem",
-                  borderRadius: "14px",
-                  border: isSelected
-                    ? "2px solid rgba(15, 23, 42, 0.55)"
-                    : "1px solid rgba(15, 23, 42, 0.12)",
-                  background: disabled
-                    ? "rgba(15, 23, 42, 0.03)"
-                    : "rgba(255,255,255,0.75)",
-                  cursor: disabled ? "not-allowed" : "pointer",
-                  textAlign: "left",
-                  minHeight: "64px",
-                  opacity: disabled ? 0.55 : 1,
-                }}
-                aria-pressed={isSelected}
-                title={outsideProgram ? formatShort(d) : dayN ? `Day ${dayN} · ${formatShort(d)}` : formatShort(d)}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
-                  <div style={{ fontWeight: 800 }}>{d.getDate()}</div>
-                  {dayN ? (
-                    <div
-                      style={{
-                        fontSize: "0.75rem",
-                        padding: "0.1rem 0.45rem",
-                        borderRadius: "999px",
-                        border: "1px solid rgba(15, 23, 42, 0.15)",
-                        background: "rgba(15, 23, 42, 0.03)",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Day {dayN}
+                <div
+                  className="schedule-calendar-grid"
+                  style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
+                >
+                  {calendarDates.map((d) => {
+                    const key = dateToKey(d);
+                    const info = dayMap.get(key);
+                    const isSelected = selectedDateKey === key;
+                    const isInProgram = Boolean(info);
+
+                    const title = info
+                      ? `${fmt(d)} · Day ${info.dayN} · Week ${info.weekN}`
+                      : fmt(d);
+
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`schedule-cal-cell ${isSelected ? "schedule-cal-cell--active" : ""}`}
+                        onClick={() => {
+                          if (!isInProgram) return;
+                          setSelectedDateKey(key);
+                        }}
+                        title={title}
+                        disabled={!isInProgram}
+                      >
+                        <div className="schedule-cal-cell-top">
+                          <span className="schedule-cal-date">{d.getDate()}</span>
+                          <span className="schedule-cal-week">
+                            {info ? `W${info.weekN}` : ""}
+                          </span>
+                        </div>
+                        <div className="schedule-cal-meta">
+                          {info ? `Day ${info.dayN}` : ""}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right: Day detail */}
+              <div className="week-detail" style={{ width: "100%", minWidth: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+                  <div>
+                    <div className="section-heading" style={{ marginBottom: "0.25rem" }}>
+                      {programDay != null ? `Day ${programDay}` : "Select a day"}
+                    </div>
+                    <div className="muted">
+                      {selectedDate ? fmt(selectedDate) : "—"} · Curriculum Week{" "}
+                      <b>{curriculumWeek}</b>
+                    </div>
+                  </div>
+
+                  <div className="pill-row">
+                    <span className="pill pill-soft">
+                      Track: <b>{track === "engineer" ? "Engineer" : "Architect"}</b>
+                    </span>
+                    <span className="pill pill-soft">
+                      Week: <b>{programWeek}</b>/7
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "0.75rem" }}>
+                  {selectedModules.length ? (
+                    <div className="module-stack">
+                      {selectedModules.map((m, idx) => {
+                        const catalogUrl = m.resourceKey ? (TRAINING_CATALOG as any)[m.resourceKey]?.url : null;
+                        const url = (m as any).url || catalogUrl;
+
+                        const content = (
+                          <>
+                            <div className="module-row">
+                              <div className="module-badge">{String((m as any).type || "").toUpperCase()}</div>
+                              <div className="module-title">{m.title}</div>
+                              <div className="module-duration">{m.duration}</div>
+                            </div>
+                          </>
+                        );
+
+                        return url ? (
+                          <a
+                            key={`${m.title}-${idx}`}
+                            className="module-item module-item--link"
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {content}
+                          </a>
+                        ) : (
+                          <div key={`${m.title}-${idx}`} className="module-item">
+                            {content}
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
-                    <div className="muted" style={{ fontSize: "0.75rem" }}>
-                      —
+                    <div className="note">
+                      {selectedDateKey && !dayMap.get(selectedDateKey)
+                        ? "This date is outside the program."
+                        : "No modules found for this day (check curriculum mapping)."}
                     </div>
                   )}
                 </div>
-
-                <div className="muted" style={{ fontSize: "0.78rem", marginTop: "0.25rem" }}>
-                  {formatShort(d)}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {selectedDate ? (
-        <section className="card card--soft" style={{ flex: "1 1 48%" }}>
-          <div className="card-header-row">
-            <div>
-              <h2 className="card-title">
-                {selectedInfo?.dayN ? `Day ${selectedInfo.dayN}` : "No modules"} ·{" "}
-                {selectedDate.toLocaleDateString(undefined, {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </h2>
-              <p className="card-subtitle">
-                {selectedInfo?.dayN
-                  ? "Modules scheduled for this day."
-                  : "This date is outside the 7-week weekday schedule (or falls on a weekend)."}
-              </p>
-            </div>
-            <div className="pill-row">
-              <span className="pill pill-soft">{trackLabel}</span>
-              {selectedLearner ? (
-                <span className="pill pill-soft">Learner: {selectedLearner.name}</span>
-              ) : null}
+              </div>
             </div>
           </div>
-
-          {selectedInfo?.modules ? (
-            <div style={{ display: "grid", gap: "0.75rem", marginTop: "0.25rem" }}>
-              {selectedInfo.modules.length === 0 ? (
-                <div className="muted">No items for this day.</div>
-              ) : (
-                selectedInfo.modules.map((m, idx) => {
-                  const title =
-                    (m.resourceKey ? TRAINING_CATALOG[m.resourceKey] : undefined)?.title ??
-                    m.title;
-
-                  const href =
-                    m.url ??
-                    (m.resourceKey ? TRAINING_CATALOG[m.resourceKey]?.url : "") ??
-                    "";
-
-                  const isInternal = [
-                    "internal-docs",
-                    "internal-lab",
-                    "internal-project",
-                    "internal-assessment",
-                  ].includes(href);
-
-                  return (
-                    <div
-                      key={`${selectedDateIso}-${idx}`}
-                      style={{
-                        borderRadius: "12px",
-                        padding: "0.65rem 0.75rem",
-                        border: "1px solid rgba(15, 23, 42, 0.08)",
-                        background: "rgba(15, 23, 42, 0.02)",
-                      }}
-                    >
-                      <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
-
-                      <div
-                        className="muted"
-                        style={{
-                          marginTop: "0.25rem",
-                          fontSize: "0.86rem",
-                          display: "flex",
-                          gap: "0.6rem",
-                          flexWrap: "wrap",
-                          alignItems: "center",
-                        }}
-                      >
-                        <span>Duration: {m.duration}</span>
-
-                        {!href || isInternal ? null : (
-                          <a href={href} target="_blank" rel="noreferrer">
-                            Access →
-                          </a>
-                        )}
-
-                        <span
-                          style={{
-                            marginLeft: "auto",
-                            display: "inline-block",
-                            padding: "0.15rem 0.5rem",
-                            borderRadius: "999px",
-                            fontSize: "0.72rem",
-                            border: "1px solid rgba(15, 23, 42, 0.12)",
-                            background: "rgba(15, 23, 42, 0.03)",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {m.type}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-    </div>
+        )}
+      </section>
 
       <section className="card card--soft-green">
-        <h2 className="card-title">Resources &amp; Support</h2>
-        <div className="resources-grid">
-          <div className="resource-card">
-            <h3 className="section-heading">LinkedIn Learning</h3>
-            <p className="muted">
-              Curated playlists aligned with each week, accessible via corporate license.
-            </p>
+        <h2 className="card-title">Assessment &amp; Certification</h2>
+        <div className="assessment-grid">
+          <div className="assessment-column">
+            <h3 className="section-heading">Weekly Cadence</h3>
+            <ul className="simple-list">
+              <li>Short daily checks to validate understanding.</li>
+              <li>Lab-based assignments for applied practice.</li>
+              <li>Weekly Friday assessments with score thresholds.</li>
+            </ul>
           </div>
-          <div className="resource-card">
-            <h3 className="section-heading">Internal Labs</h3>
-            <p className="muted">
-              Hands-on exercises in a safe, sandboxed environment with sample data.
-            </p>
+          <div className="assessment-column">
+            <h3 className="section-heading">Scoring Targets</h3>
+            <ul className="simple-list">
+              <li>Weeks 1–2 · Passing score 70–75%.</li>
+              <li>Weeks 3–4 · Passing score 78–80%.</li>
+              <li>Weeks 5–6 · Higher bar on applied labs (80%+).</li>
+              <li>Week 7 · Final certification exam ≥ 85%.</li>
+            </ul>
           </div>
-          <div className="resource-card">
-            <h3 className="section-heading">Instructor Support</h3>
-            <p className="muted">
-              Daily office hours and async Q&amp;A for blockers and design reviews.
-            </p>
-          </div>
-          <div className="resource-card">
-            <h3 className="section-heading">Peer Learning</h3>
-            <p className="muted">Cohort collaboration via dedicated Slack / Teams spaces.</p>
+          <div className="assessment-column">
+            <h3 className="section-heading">Outcomes</h3>
+            <ul className="simple-list">
+              <li>Certified Agentic AI Engineer / Architect.</li>
+              <li>Capstone artifact ready to demo to stakeholders.</li>
+              <li>Internal profile flagged as “Agentic AI ready”.</li>
+            </ul>
           </div>
         </div>
-      </section>
-    </div>
+      </section>    </div>
   );
 }
 
