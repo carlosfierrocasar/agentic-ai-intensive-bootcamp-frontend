@@ -10,6 +10,29 @@ import {
   type WeekProgress,
 } from "./api";
 
+
+type DayChecks = Record<string, boolean>;
+
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+async function updateLearnerDayChecks(
+  learnerId: number,
+  day_checks: DayChecks
+): Promise<Learner> {
+  const res = await fetch(`${API_URL}/learners/${learnerId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ day_checks }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(detail || `Failed to update learner ${learnerId} day checks`);
+  }
+
+  return res.json();
+}
+
 type TabKey = "overview" | "placement" | "schedule" | "progress";
 
 function App() {
@@ -1175,6 +1198,18 @@ const bootcampSchedule = {
 
 type TrackKey = "engineer" | "architect";
 
+const getLearnerTrack = (learner: Learner | null | undefined): TrackKey => {
+  const tr = String((learner as any)?.target_role ?? "").toLowerCase();
+  return tr.includes("architect") ? "architect" : "engineer";
+};
+
+const getDayCheckKey = (dayN: number) => `day_${dayN}`;
+
+const getLearnerDayChecks = (learner: Learner | null | undefined): DayChecks => {
+  const raw = (learner as any)?.day_checks;
+  return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+};
+
 function ScheduleTab() {
   const [track, setTrack] = useState<TrackKey>("engineer");
 
@@ -1198,9 +1233,7 @@ function ScheduleTab() {
 
           setSelectedLearnerId(pick.id);
 
-          const tr = String((pick as any).target_role ?? "").toLowerCase();
-          if (tr.includes("architect")) setTrack("architect");
-          else if (tr.includes("engineer")) setTrack("engineer");
+          setTrack(getLearnerTrack(pick));
 
           const sd = String((pick as any).start_date ?? "").slice(0, 10);
           setSelectedDateIso(sd || todayISO());
@@ -1363,6 +1396,59 @@ const toISO = (d: Date) => {
   const selectedDate = selectedDateIso ? parseISODate(selectedDateIso) : null;
 
   const selectedInfo = selectedDate ? getModulesForDate(selectedDate) : null;
+  const learnerDayChecks = getLearnerDayChecks(selectedLearner);
+  const selectedDayCompleted = selectedInfo?.dayN
+    ? Boolean(learnerDayChecks[getDayCheckKey(selectedInfo.dayN)])
+    : false;
+
+  const weeklyProgress = weeksForTrack.map((week, weekIndex) => {
+    const totalDays = week.days.length;
+    const completedDays = week.days.reduce((acc, _day, dayIndex) => {
+      const dayN = weekIndex * 5 + dayIndex + 1;
+      return acc + (learnerDayChecks[getDayCheckKey(dayN)] ? 1 : 0);
+    }, 0);
+
+    return {
+      week: week.week,
+      title: week.title,
+      completedDays,
+      totalDays,
+      pct: totalDays ? Math.round((completedDays / totalDays) * 100) : 0,
+    };
+  });
+
+  const totalCompletedDays = weeklyProgress.reduce((acc, week) => acc + week.completedDays, 0);
+  const totalProgramDays = weeklyProgress.reduce((acc, week) => acc + week.totalDays, 0);
+  const totalDayProgressPct = totalProgramDays
+    ? Math.round((totalCompletedDays / totalProgramDays) * 100)
+    : 0;
+
+  const handleToggleSelectedDay = async (checked: boolean) => {
+    if (!selectedLearner || !selectedInfo?.dayN) return;
+
+    const nextDayChecks: DayChecks = {
+      ...getLearnerDayChecks(selectedLearner),
+      [getDayCheckKey(selectedInfo.dayN)]: checked,
+    };
+
+    setLearners((prev) =>
+      prev.map((learner) =>
+        learner.id === selectedLearner.id
+          ? ({ ...learner, day_checks: nextDayChecks } as Learner & { day_checks: DayChecks })
+          : learner
+      )
+    );
+
+    try {
+      const updated = await updateLearnerDayChecks(selectedLearner.id, nextDayChecks);
+      setLearners((prev) => prev.map((learner) => (learner.id === selectedLearner.id ? updated : learner)));
+    } catch (err) {
+      console.error(err);
+      alert(`Error saving day completion: ${String(err)}`);
+      const ls = await getLearners();
+      setLearners(ls);
+    }
+  };
 
   const trackLabel =
     track === "engineer"
@@ -1408,8 +1494,8 @@ const toISO = (d: Date) => {
                 onChange={(e) => {
                   const id = Number(e.target.value);
                   setSelectedLearnerId(Number.isFinite(id) ? id : null);
-                  // also move selection to the new learner's start_date
                   const nextLearner = learners.find((l) => l.id === id);
+                  setTrack(getLearnerTrack(nextLearner));
                   const sd = String((nextLearner as any)?.start_date ?? "").slice(0, 10);
                   setSelectedDateIso(sd || todayISO());
                 }}
@@ -1484,15 +1570,47 @@ const toISO = (d: Date) => {
                   {dayN ? (
                     <div
                       style={{
-                        fontSize: "0.75rem",
-                        padding: "0.1rem 0.45rem",
-                        borderRadius: "999px",
-                        border: "1px solid rgba(15, 23, 42, 0.15)",
-                        background: "rgba(15, 23, 42, 0.03)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.35rem",
                         whiteSpace: "nowrap",
                       }}
                     >
-                      Day {dayN}
+                      {learnerDayChecks[getDayCheckKey(dayN)] ? (
+                        <span
+                          aria-label="Completed"
+                          title="Completed"
+                          style={{
+                            width: "1.2rem",
+                            height: "1.2rem",
+                            borderRadius: "999px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "#16a34a",
+                            color: "#fff",
+                            fontSize: "0.8rem",
+                            fontWeight: 800,
+                            lineHeight: 1,
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                          }}
+                        >
+                          ✓
+                        </span>
+                      ) : null}
+
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "0.1rem 0.45rem",
+                          borderRadius: "999px",
+                          border: "1px solid rgba(15, 23, 42, 0.15)",
+                          background: "rgba(15, 23, 42, 0.03)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Day {dayN}
+                      </div>
                     </div>
                   ) : (
                     <div className="muted" style={{ fontSize: "0.75rem" }}>
@@ -1535,6 +1653,66 @@ const toISO = (d: Date) => {
                 <span className="pill pill-soft">Learner: {selectedLearner.name}</span>
               ) : null}
             </div>
+          </div>
+
+          {selectedInfo?.dayN ? (
+            <div
+              style={{
+                marginTop: "0.35rem",
+                marginBottom: "0.9rem",
+                padding: "0.8rem 0.9rem",
+                borderRadius: "12px",
+                border: "1px solid rgba(15, 23, 42, 0.08)",
+                background: "rgba(15, 23, 42, 0.03)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <label style={{ display: "flex", alignItems: "center", gap: "0.65rem", fontWeight: 700 }}>
+                <input
+                  type="checkbox"
+                  checked={selectedDayCompleted}
+                  onChange={(e) => handleToggleSelectedDay(e.target.checked)}
+                />
+                Mark this day as completed
+              </label>
+
+              <div className="muted" style={{ fontSize: "0.9rem" }}>
+                Overall day progress: <b>{totalCompletedDays}/{totalProgramDays}</b> ({totalDayProgressPct}%)
+              </div>
+            </div>
+          ) : null}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
+              gap: "0.6rem",
+              marginBottom: "0.95rem",
+            }}
+          >
+            {weeklyProgress.map((week) => (
+              <div
+                key={week.week}
+                style={{
+                  borderRadius: "12px",
+                  padding: "0.65rem 0.75rem",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  background: "rgba(15, 23, 42, 0.02)",
+                }}
+              >
+                <div style={{ fontWeight: 700 }}>Week {week.week}</div>
+                <div className="muted" style={{ fontSize: "0.82rem", marginTop: "0.2rem" }}>
+                  {week.completedDays}/{week.totalDays} days
+                </div>
+                <div style={{ fontSize: "1rem", fontWeight: 800, marginTop: "0.25rem" }}>
+                  {week.pct}%
+                </div>
+              </div>
+            ))}
           </div>
 
           {selectedInfo?.modules ? (
@@ -2018,7 +2196,8 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
       overall_modules_total: 0,
       overall_modules_completed: 0,
       progress: [],
-    };
+      day_checks: {},
+    } as Learner & { day_checks: DayChecks };
 
     try {
       setIsAdding(true);
