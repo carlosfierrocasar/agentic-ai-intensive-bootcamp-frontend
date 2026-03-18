@@ -1401,6 +1401,19 @@ const toISO = (d: Date) => {
     ? Boolean(learnerDayChecks[getDayCheckKey(selectedInfo.dayN)])
     : false;
 
+  const selectedWeekNumber = selectedInfo?.dayN ? Math.ceil(selectedInfo.dayN / 5) : null;
+  const selectedWeekProgress =
+    selectedWeekNumber && selectedLearner
+      ? (Array.isArray(selectedLearner.progress)
+          ? selectedLearner.progress.find((p) => p.week === selectedWeekNumber)
+          : null)
+      : null;
+  const selectedAssessmentPct = Math.max(
+    0,
+    Math.min(100, Number((selectedWeekProgress as any)?.assessment_pct ?? 0))
+  );
+  const showAssessmentField = Boolean(selectedInfo?.dayN && selectedInfo.dayN % 5 === 0);
+
   const weeklyProgress = weeksForTrack.map((week, weekIndex) => {
     const totalDays = week.days.length;
     const completedDays = week.days.reduce((acc, _day, dayIndex) => {
@@ -1445,6 +1458,47 @@ const toISO = (d: Date) => {
     } catch (err) {
       console.error(err);
       alert(`Error saving day completion: ${String(err)}`);
+      const ls = await getLearners();
+      setLearners(ls);
+    }
+  };
+
+  const handleSelectedAssessmentChange = async (value: number) => {
+    if (!selectedLearner || !selectedWeekNumber) return;
+
+    const safeValue = Math.max(0, Math.min(100, value));
+    const weekTotals = [5, 5, 5, 5, 5, 5, 4];
+    const safeProgress = Array.isArray(selectedLearner.progress) ? selectedLearner.progress : [];
+    const normalizedProgress =
+      safeProgress.length > 0
+        ? safeProgress
+        : weekTotals.map((t, i) => ({
+            week: i + 1,
+            modules_completed: 0,
+            total_modules: t,
+            assessment_pct: 0,
+          }));
+
+    const newProgress = normalizedProgress.map((p) =>
+      p.week === selectedWeekNumber
+        ? { ...p, assessment_pct: safeValue }
+        : p
+    );
+
+    setLearners((prev) =>
+      prev.map((learner) =>
+        learner.id === selectedLearner.id ? { ...learner, progress: newProgress } : learner
+      )
+    );
+
+    try {
+      const updated = await updateLearnerProgress(selectedLearner.id, newProgress);
+      setLearners((prev) =>
+        prev.map((learner) => (learner.id === selectedLearner.id ? updated : learner))
+      );
+    } catch (err) {
+      console.error(err);
+      alert(`Error saving assessment: ${String(err)}`);
       const ls = await getLearners();
       setLearners(ls);
     }
@@ -1655,34 +1709,76 @@ const toISO = (d: Date) => {
           </div>
 
           {selectedInfo?.dayN ? (
-            <div
-              style={{
-                marginTop: "0.35rem",
-                marginBottom: "0.9rem",
-                padding: "0.8rem 0.9rem",
-                borderRadius: "12px",
-                border: "1px solid rgba(15, 23, 42, 0.08)",
-                background: "rgba(15, 23, 42, 0.03)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "1rem",
-                flexWrap: "wrap",
-              }}
-            >
-              <label style={{ display: "flex", alignItems: "center", gap: "0.65rem", fontWeight: 700 }}>
-                <input
-                  type="checkbox"
-                  checked={selectedDayCompleted}
-                  onChange={(e) => handleToggleSelectedDay(e.target.checked)}
-                />
-                Mark this day as completed
-              </label>
+            <>
+              <div
+                style={{
+                  marginTop: "0.35rem",
+                  marginBottom: "0.9rem",
+                  padding: "0.8rem 0.9rem",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  background: "rgba(15, 23, 42, 0.03)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "1rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <label style={{ display: "flex", alignItems: "center", gap: "0.65rem", fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedDayCompleted}
+                    onChange={(e) => handleToggleSelectedDay(e.target.checked)}
+                  />
+                  Mark this day as completed
+                </label>
 
-              <div className="muted" style={{ fontSize: "0.9rem" }}>
-                Overall day progress: <b>{totalCompletedDays}/{totalProgramDays}</b> ({totalDayProgressPct}%)
+                <div className="muted" style={{ fontSize: "0.9rem" }}>
+                  Overall day progress: <b>{totalCompletedDays}/{totalProgramDays}</b> ({totalDayProgressPct}%)
+                </div>
               </div>
-            </div>
+
+              {showAssessmentField ? (
+                <div
+                  style={{
+                    marginTop: "-0.2rem",
+                    marginBottom: "0.9rem",
+                    padding: "0.8rem 0.9rem",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(15, 23, 42, 0.08)",
+                    background: "rgba(15, 23, 42, 0.03)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ fontWeight: 700 }}>
+                    Week {selectedWeekNumber} Assessment %
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={selectedAssessmentPct}
+                      onChange={(e) => handleSelectedAssessmentChange(Number(e.target.value || 0))}
+                      style={{
+                        width: "86px",
+                        padding: "0.45rem 0.55rem",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(15, 23, 42, 0.15)",
+                        background: "#fff",
+                      }}
+                    />
+                    <span className="muted">%</span>
+                  </div>
+                </div>
+              ) : null}
+            </>
           ) : null}
 
 
