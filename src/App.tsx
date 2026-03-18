@@ -1473,19 +1473,18 @@ const toISO = (d: Date) => {
           </div>
 
           <div style={{ display: "grid", gap: "0.5rem", justifyItems: "end" }}>
-            <select
-              className="select"
-              value={trackLabel}
-              onChange={(e) => {
-                const val = e.target.value;
-                const next: TrackKey =
-                  val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
-                setTrack(next);
+            <div
+              className="pill pill-soft"
+              style={{
+                minWidth: "260px",
+                justifyContent: "center",
+                padding: "0.7rem 1rem",
+                borderRadius: "999px",
+                fontWeight: 600,
               }}
             >
-              <option>Agentic AI Engineer Track</option>
-              <option>AI Agentic Solution Architect Track</option>
-            </select>
+              {trackLabel}
+            </div>
 
             {learners.length > 0 ? (
               <select
