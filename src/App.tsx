@@ -2813,22 +2813,18 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
                             Modules completed
                           </label>
                           <div className="week-field-input-row">
-                            <input
-                              type="number"
-                              min={0}
-                              max={week.total_modules}
-                              disabled={week.week < Number((learner as any).start_week || 1)}
-                              value={week.modules_completed}
-                              onChange={(e) =>
-                                handleWeekChange(
-                                  learner.id,
-                                  week.week,
-                                  "modules_completed",
-                                  Number(e.target.value || 0)
-                                )
-                              }
+                            <div
                               className="week-input"
-                            />
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                minHeight: "36px",
+                                cursor: "default",
+                                background: "rgba(15, 23, 42, 0.03)",
+                              }}
+                            >
+                              {week.modules_completed}
+                            </div>
                             <span className="week-field-suffix">
                               / {week.total_modules}
                             </span>
