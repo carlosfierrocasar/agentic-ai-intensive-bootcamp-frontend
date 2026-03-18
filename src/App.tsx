@@ -2783,15 +2783,18 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
                             Assessment %
                           </label>
                           <div className="week-field-input-row">
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              disabled={week.week < Number((learner as any).start_week || 1)}
-                              value={week.assessment_pct}
-                              readOnly={true}
+                            <div
                               className="week-input"
-                            />
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                minHeight: "36px",
+                                cursor: "default",
+                                background: "rgba(15, 23, 42, 0.03)",
+                              }}
+                            >
+                              {week.assessment_pct}
+                            </div>
                             <span className="week-field-suffix">%</span>
                           </div>
                         </div>
