@@ -1414,6 +1414,23 @@ const toISO = (d: Date) => {
   );
   const showAssessmentField = Boolean(selectedInfo?.dayN && selectedInfo.dayN % 5 === 0);
 
+  const selectedDayCanBeCompleted = Boolean(
+    selectedInfo?.dayN &&
+      (
+        selectedDayCompleted ||
+        selectedInfo.dayN === 1 ||
+        Boolean(learnerDayChecks[getDayCheckKey(selectedInfo.dayN - 1)])
+      )
+  );
+
+  const selectedAssessmentUnlocked = Boolean(
+    showAssessmentField &&
+      selectedInfo?.dayN &&
+      Array.from({ length: selectedInfo.dayN }, (_, idx) => idx + 1).every((day) =>
+        Boolean(learnerDayChecks[getDayCheckKey(day)])
+      )
+  );
+
   const weeklyProgress = weeksForTrack.map((week, weekIndex) => {
     const totalDays = week.days.length;
     const completedDays = week.days.reduce((acc, _day, dayIndex) => {
@@ -1438,6 +1455,11 @@ const toISO = (d: Date) => {
 
   const handleToggleSelectedDay = async (checked: boolean) => {
     if (!selectedLearner || !selectedInfo?.dayN) return;
+
+    if (checked && !selectedDayCanBeCompleted) {
+      alert("You must complete the previous day before marking this day as completed.");
+      return;
+    }
 
     const nextDayChecks: DayChecks = {
       ...getLearnerDayChecks(selectedLearner),
@@ -1465,6 +1487,10 @@ const toISO = (d: Date) => {
 
   const handleSelectedAssessmentChange = async (value: number) => {
     if (!selectedLearner || !selectedWeekNumber) return;
+    if (!selectedAssessmentUnlocked) {
+      alert("You must complete all previous days, including this day, before editing the assessment.");
+      return;
+    }
 
     const safeValue = Math.max(0, Math.min(100, value));
     const weekTotals = [5, 5, 5, 5, 5, 5, 4];
@@ -1729,6 +1755,7 @@ const toISO = (d: Date) => {
                   <input
                     type="checkbox"
                     checked={selectedDayCompleted}
+                    disabled={!selectedDayCompleted && !selectedDayCanBeCompleted}
                     onChange={(e) => handleToggleSelectedDay(e.target.checked)}
                   />
                   Mark this day as completed
@@ -1755,8 +1782,15 @@ const toISO = (d: Date) => {
                     flexWrap: "wrap",
                   }}
                 >
-                  <div style={{ fontWeight: 700 }}>
-                    Week {selectedWeekNumber} Assessment %
+                  <div>
+                    <div style={{ fontWeight: 700 }}>
+                      Week {selectedWeekNumber} Assessment %
+                    </div>
+                    {!selectedAssessmentUnlocked ? (
+                      <div className="muted" style={{ fontSize: "0.82rem", marginTop: "0.2rem" }}>
+                        Complete all previous days, including this one, to unlock the assessment.
+                      </div>
+                    ) : null}
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
@@ -1764,6 +1798,7 @@ const toISO = (d: Date) => {
                       type="number"
                       min={0}
                       max={100}
+                      disabled={!selectedAssessmentUnlocked}
                       value={selectedAssessmentPct}
                       onChange={(e) => handleSelectedAssessmentChange(Number(e.target.value || 0))}
                       style={{
@@ -1771,7 +1806,8 @@ const toISO = (d: Date) => {
                         padding: "0.45rem 0.55rem",
                         borderRadius: "8px",
                         border: "1px solid rgba(15, 23, 42, 0.15)",
-                        background: "#fff",
+                        background: !selectedAssessmentUnlocked ? "rgba(15, 23, 42, 0.05)" : "#fff",
+                        cursor: !selectedAssessmentUnlocked ? "not-allowed" : "text",
                       }}
                     />
                     <span className="muted">%</span>
