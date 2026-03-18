@@ -2380,59 +2380,6 @@ const behindGlobal = weeklyWithProgress.filter((x) => x.pct < x.expected).length
     return "In progress";
   }
 
-  async function handleWeekChange(
-    learnerId: number,
-    week: number,
-    field: "modules_completed" | "assessment_pct",
-    value: number
-  ) {
-    const learner = learners.find((l) => l.id === learnerId);
-    if (!learner) return;
-
-    const safeProgress = Array.isArray(learner.progress) ? learner.progress : [];
-    const weekTotals = [5, 5, 5, 5, 5, 5, 4];
-    const normalizedProgress =
-      safeProgress.length > 0
-        ? safeProgress
-        : weekTotals.map((t, i) => ({
-          week: i + 1,
-          modules_completed: 0,
-          total_modules: t,
-          assessment_pct: 0,
-        }));
-
-    const newProgress = normalizedProgress.map((p) =>
-
-
-      p.week === week
-        ? {
-          ...p,
-          [field]:
-            field === "modules_completed"
-              ? Math.max(0, Math.min(value, p.total_modules))
-              : Math.max(0, Math.min(value, 100)),
-        }
-        : p
-    );
-
-    // update local de inmediato
-    setLearners((prev) =>
-      prev.map((l) => (l.id === learnerId ? { ...l, progress: newProgress } : l))
-    );
-
-    // guardar en backend y refrescar datos de ese learner (incluye overall %)
-    try {
-      const updated = await updateLearnerProgress(learnerId, newProgress);
-      setLearners((prev) =>
-        prev.map((l) => (l.id === learnerId ? updated : l))
-      );
-    } catch (err) {
-      console.error(err);
-      alert(`Error saving progress: ${String(err)}`);
-      // recargar desde backend para no dejar datos chuecos
-      loadData();
-    }
-  }
 
   return (
     <div className="grid gap-lg progress-dashboard">
