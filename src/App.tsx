@@ -1472,7 +1472,160 @@ const toISO = (d: Date) => {
             </div>
           </div>
 
-          
+          <div style={{ display: "grid", gap: "0.5rem", justifyItems: "end" }}>
+            <select
+              className="select"
+              value={trackLabel}
+              onChange={(e) => {
+                const val = e.target.value;
+                const next: TrackKey =
+                  val === "AI Agentic Solution Architect Track" ? "architect" : "engineer";
+                setTrack(next);
+              }}
+            >
+              <option>Agentic AI Engineer Track</option>
+              <option>AI Agentic Solution Architect Track</option>
+            </select>
+
+            {learners.length > 0 ? (
+              <select
+                className="select"
+                value={String(selectedLearner?.id ?? "")}
+                onChange={(e) => {
+                  const id = Number(e.target.value);
+                  setSelectedLearnerId(Number.isFinite(id) ? id : null);
+                  const nextLearner = learners.find((l) => l.id === id);
+                  setTrack(getLearnerTrack(nextLearner));
+                  const sd = String((nextLearner as any)?.start_date ?? "").slice(0, 10);
+                  setSelectedDateIso(sd || todayISO());
+                }}
+              >
+                {learners.map((l) => (
+                  <option key={l.id} value={String(l.id)}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: "1rem",
+            display: "grid",
+            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+            gap: "0.5rem",
+          }}
+        >
+          {["Mon", "Tue", "Wed", "Thu", "Fri"].map((h) => (
+            <div
+              key={h}
+              className="muted"
+              style={{
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                textTransform: "uppercase",
+                padding: "0 0.25rem",
+              }}
+            >
+              {h}
+            </div>
+          ))}
+
+          {calendarDays.map((d) => {
+            const iso = toISO(d);
+            const isSelected = selectedDateIso === iso;
+            const dayN = getDayN(d);
+            const outsideProgram = d.getTime() < startDate.getTime() || d.getTime() > programEnd.getTime();
+            const disabled = outsideProgram;
+
+            return (
+              <button
+                key={iso}
+                type="button"
+                className="card"
+                onClick={() => setSelectedDateIso(iso)}
+                disabled={disabled}
+                style={{
+                  padding: "0.6rem",
+                  borderRadius: "14px",
+                  border: isSelected
+                    ? "2px solid rgba(15, 23, 42, 0.55)"
+                    : "1px solid rgba(15, 23, 42, 0.12)",
+                  background: disabled
+                    ? "rgba(15, 23, 42, 0.03)"
+                    : "rgba(255,255,255,0.75)",
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  textAlign: "left",
+                  minHeight: "64px",
+                  opacity: disabled ? 0.55 : 1,
+                }}
+                aria-pressed={isSelected}
+                title={outsideProgram ? formatShort(d) : dayN ? `Day ${dayN} · ${formatShort(d)}` : formatShort(d)}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
+                  <div style={{ fontWeight: 800 }}>{d.getDate()}</div>
+                  {dayN ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.35rem",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {learnerDayChecks[getDayCheckKey(dayN)] ? (
+                        <span
+                          aria-label="Completed"
+                          title="Completed"
+                          style={{
+                            width: "1.2rem",
+                            height: "1.2rem",
+                            borderRadius: "999px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "#16a34a",
+                            color: "#fff",
+                            fontSize: "0.8rem",
+                            fontWeight: 800,
+                            lineHeight: 1,
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                          }}
+                        >
+                          ✓
+                        </span>
+                      ) : null}
+
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "0.1rem 0.45rem",
+                          borderRadius: "999px",
+                          border: "1px solid rgba(15, 23, 42, 0.15)",
+                          background: "rgba(15, 23, 42, 0.03)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Day {dayN}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="muted" style={{ fontSize: "0.75rem" }}>
+                      —
+                    </div>
+                  )}
+                </div>
+
+                <div className="muted" style={{ fontSize: "0.78rem", marginTop: "0.25rem" }}>
+                  {formatShort(d)}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </section>
 
       {selectedDate ? (
@@ -1533,151 +1686,124 @@ const toISO = (d: Date) => {
             </div>
           ) : null}
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
-              gap: "0.6rem",
-              marginBottom: "0.95rem",
-            }}
-          >
-            {weeklyProgress.map((week) => (
-              <div
-                key={week.week}
-                style={{
-                  borderRadius: "12px",
-                  padding: "0.65rem 0.75rem",
-                  border: "1px solid rgba(15, 23, 42, 0.08)",
-                  background: "rgba(15, 23, 42, 0.02)",
-                }}
-              >
-                <div style={{ fontWeight: 700 }}>Week {week.week}</div>
-                <div className="muted" style={{ fontSize: "0.82rem", marginTop: "0.2rem" }}>
-                  {week.completedDays}/{week.totalDays} days
-                </div>
-                <div style={{ fontSize: "1rem", fontWeight: 800, marginTop: "0.25rem" }}>
-                  {week.pct}%
-                </div>
-              </div>
-            ))}
-          </div>
 
           {selectedInfo?.modules ? (
-            <div style={{ display: "grid", gap: "0.75rem", marginTop: "0.25rem" }}>
-              {selectedInfo.modules.length === 0 ? (
-                <div className="muted">No items for this day.</div>
-              ) : (
-                selectedInfo.modules.map((m, idx) => {
-                  const title =
-                    (m.resourceKey ? TRAINING_CATALOG[m.resourceKey] : undefined)?.title ??
-                    m.title;
+            <>
+              <div style={{ display: "grid", gap: "0.75rem", marginTop: "0.25rem" }}>
+                {selectedInfo.modules.length === 0 ? (
+                  <div className="muted">No items for this day.</div>
+                ) : (
+                  selectedInfo.modules.map((m, idx) => {
+                    const title =
+                      (m.resourceKey ? TRAINING_CATALOG[m.resourceKey] : undefined)?.title ??
+                      m.title;
 
-                  const href =
-                    m.url ??
-                    (m.resourceKey ? TRAINING_CATALOG[m.resourceKey]?.url : "") ??
-                    "";
+                    const href =
+                      m.url ??
+                      (m.resourceKey ? TRAINING_CATALOG[m.resourceKey]?.url : "") ??
+                      "";
 
-                  const isInternal = [
-                    "internal-docs",
-                    "internal-lab",
-                    "internal-project",
-                    "internal-assessment",
-                  ].includes(href);
+                    const isInternal = [
+                      "internal-docs",
+                      "internal-lab",
+                      "internal-project",
+                      "internal-assessment",
+                    ].includes(href);
 
-                  return (
+                    return (
+                      <div
+                        key={`${selectedDateIso}-${idx}`}
+                        style={{
+                          borderRadius: "12px",
+                          padding: "0.65rem 0.75rem",
+                          border: "1px solid rgba(15, 23, 42, 0.08)",
+                          background: "rgba(15, 23, 42, 0.02)",
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
+
+                        <div
+                          className="muted"
+                          style={{
+                            marginTop: "0.25rem",
+                            fontSize: "0.86rem",
+                            display: "flex",
+                            gap: "0.6rem",
+                            flexWrap: "wrap",
+                            alignItems: "center",
+                          }}
+                        >
+                          <span>Duration: {m.duration}</span>
+
+                          {!href || isInternal ? null : (
+                            <a href={href} target="_blank" rel="noreferrer">
+                              Access →
+                            </a>
+                          )}
+
+                          <span
+                            style={{
+                              marginLeft: "auto",
+                              display: "inline-block",
+                              padding: "0.15rem 0.5rem",
+                              borderRadius: "999px",
+                              fontSize: "0.72rem",
+                              border: "1px solid rgba(15, 23, 42, 0.12)",
+                              background: "rgba(15, 23, 42, 0.03)",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {m.type}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <section
+                className="card"
+                style={{
+                  marginTop: "1rem",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  background: "rgba(15, 23, 42, 0.02)",
+                  borderRadius: "12px",
+                  padding: "0.9rem",
+                }}
+              >
+                <h3 style={{ fontWeight: 800, marginBottom: "0.75rem" }}>Weekly Progress</h3>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
+                    gap: "0.6rem",
+                  }}
+                >
+                  {weeklyProgress.map((week) => (
                     <div
-                      key={`${selectedDateIso}-${idx}`}
+                      key={week.week}
                       style={{
                         borderRadius: "12px",
                         padding: "0.65rem 0.75rem",
                         border: "1px solid rgba(15, 23, 42, 0.08)",
-                        background: "rgba(15, 23, 42, 0.02)",
+                        background: "rgba(255,255,255,0.65)",
                       }}
                     >
-                      <div style={{ fontWeight: 700, lineHeight: 1.2 }}>{title}</div>
-
-                      <div
-                        className="muted"
-                        style={{
-                          marginTop: "0.25rem",
-                          fontSize: "0.86rem",
-                          display: "flex",
-                          gap: "0.6rem",
-                          flexWrap: "wrap",
-                          alignItems: "center",
-                        }}
-                      >
-                        <span>Duration: {m.duration}</span>
-
-                        {!href || isInternal ? null : (
-                          <a href={href} target="_blank" rel="noreferrer">
-                            Access →
-                          </a>
-                        )}
-
-                        <span
-                          style={{
-                            marginLeft: "auto",
-                            display: "inline-block",
-                            padding: "0.15rem 0.5rem",
-                            borderRadius: "999px",
-                            fontSize: "0.72rem",
-                            border: "1px solid rgba(15, 23, 42, 0.12)",
-                            background: "rgba(15, 23, 42, 0.03)",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {m.type}
-                        </span>
+                      <div style={{ fontWeight: 700 }}>Week {week.week}</div>
+                      <div className="muted" style={{ fontSize: "0.82rem", marginTop: "0.2rem" }}>
+                        {week.completedDays}/{week.totalDays} days
+                      </div>
+                      <div style={{ fontSize: "1rem", fontWeight: 800, marginTop: "0.25rem" }}>
+                        {week.pct}%
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
+                  ))}
+                </div>
+              </section>
+            </>
           ) : null}
-
-{/* Weekly Progress Section */}
-<div
-  style={{
-    marginTop: "1.2rem",
-    paddingTop: "1rem",
-    borderTop: "1px solid rgba(15, 23, 42, 0.08)",
-  }}
->
-  <h3 style={{ fontWeight: 800, marginBottom: "0.6rem" }}>
-    Weekly Progress
-  </h3>
-
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
-      gap: "0.6rem",
-    }}
-  >
-    {weeklyProgress.map((week) => (
-      <div
-        key={week.week}
-        style={{
-          borderRadius: "12px",
-          padding: "0.65rem 0.75rem",
-          border: "1px solid rgba(15, 23, 42, 0.08)",
-          background: "rgba(15, 23, 42, 0.02)",
-        }}
-      >
-        <div style={{ fontWeight: 700 }}>Week {week.week}</div>
-        <div className="muted" style={{ fontSize: "0.82rem", marginTop: "0.2rem" }}>
-          {week.completedDays}/{week.totalDays} days
-        </div>
-        <div style={{ fontSize: "1rem", fontWeight: 800, marginTop: "0.25rem" }}>
-          {week.pct}%
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
-
         </section>
       ) : null}
     </div>
