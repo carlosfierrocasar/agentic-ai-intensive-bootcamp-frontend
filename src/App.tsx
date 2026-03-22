@@ -541,7 +541,7 @@ const bootcampSchedule = {
             day: 'Friday',
             modules: [
               { title: 'Week 1 Project: Build a Simple LLM Application', duration: '4h', resourceKey: "INTERNAL_PROJECT", type: 'project' },
-              { title: 'Week 1 Assessment', duration: '15 min', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment', url: "https://docs.google.com/forms/d/e/1FAIpQLSfxe2BfFIT3bFTrRitsfmbvN2X0vbE0GG6NpuQXryYfRv9-Jw/viewform?usp=header" }
+              { title: 'Week 1 Assessment', duration: '15 min', resourceKey: "INTERNAL_ASSESSMENT", type: 'assessment', url: "https://forms.office.com/Pages/ResponsePage.aspx?id=1lGeWYwvR0OOWR95WlGpjKuntaCBy-RArTf2WHm1r2NUQkJCOVNTUERDOEhaUUhFVFBKVVU0WThBSC4u" }
             ]
           }
         ],
